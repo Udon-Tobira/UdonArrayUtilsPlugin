@@ -29,12 +29,12 @@ public:
 	 *    of the same type as the array elements and returns a bool. You should
 	 *    return true if the first argument should precede the second.
 	 */
-	UFUNCTION(BlueprintCallable, CustomThunk,
+	UFUNCTION(BlueprintCallable, Category = "Utilities|Array|Sort", CustomThunk,
 	          meta = (CompactNodeTitle = "SORT", DefaultToSelf = "Object",
 	                  ArrayParm = "TargetArray"))
 	static void SortAnyArray(UPARAM(ref) TArray<int32>& TargetArray,
-	                               UObject*                   Object,
-	                               const FName& ComparisonFunctionName);
+	                         UObject*                   Object,
+	                         const FName&               ComparisonFunctionName);
 	// memo: TArray<int32> is actually, TArray<WildCard> type. (because of
 	// CustomThunk)
 
@@ -50,8 +50,8 @@ public:
 	 *    true if the first argument should precede the second.
 	 */
 	static void GenericSortAnyArray(void*                 TargetArray,
-	                                      const FArrayProperty& ArrayProperty,
-	                                      UFunction& ComparisonFunction);
+	                                const FArrayProperty& ArrayProperty,
+	                                UFunction&            ComparisonFunction);
 
 public:
 	DECLARE_FUNCTION(execSortAnyArray) {
@@ -115,7 +115,7 @@ public:
 		// Perform the sort
 		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
 		GenericSortAnyArray(TargetArrayAddr, *TargetArrayProperty,
-		                          *ComparisonFunction);
+		                    *ComparisonFunction);
 
 		// end of native processing
 		P_NATIVE_END;
