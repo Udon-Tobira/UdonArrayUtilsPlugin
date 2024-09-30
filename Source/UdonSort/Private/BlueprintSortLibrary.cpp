@@ -43,7 +43,7 @@ inline void Swap(UdonTransparentlySwappablePtr& A,
 	FMemory::Memswap(A.TargetPtr, B.TargetPtr, A.Size);
 }
 
-void UUdonBlueprintSortLibrary::GenericSortArbitraryArray(
+void UUdonBlueprintSortLibrary::GenericSortAnyArray(
     void* TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
 	// helper to allow manipulation of the actual array

@@ -19,7 +19,7 @@ class UDONSORT_API UUdonBlueprintSortLibrary: public UBlueprintFunctionLibrary {
 
 public:
 	/**
-	 * Sort an array of arbitrary type according to the order of the specified
+	 * Sort an array of any type according to the order of the specified
 	 * comparison function.
 	 * @param TargetArray  sort target array
 	 * @param Object  An object for which the comparison function is defined.
@@ -32,7 +32,7 @@ public:
 	UFUNCTION(BlueprintCallable, CustomThunk,
 	          meta = (CompactNodeTitle = "SORT", DefaultToSelf = "Object",
 	                  ArrayParm = "TargetArray"))
-	static void SortArbitraryArray(UPARAM(ref) TArray<int32>& TargetArray,
+	static void SortAnyArray(UPARAM(ref) TArray<int32>& TargetArray,
 	                               UObject*                   Object,
 	                               const FName& ComparisonFunctionName);
 	// memo: TArray<int32> is actually, TArray<WildCard> type. (because of
@@ -49,12 +49,12 @@ public:
 	 *    same type as the array elements and returns a bool. You should return
 	 *    true if the first argument should precede the second.
 	 */
-	static void GenericSortArbitraryArray(void*                 TargetArray,
+	static void GenericSortAnyArray(void*                 TargetArray,
 	                                      const FArrayProperty& ArrayProperty,
 	                                      UFunction& ComparisonFunction);
 
 public:
-	DECLARE_FUNCTION(execSortArbitraryArray) {
+	DECLARE_FUNCTION(execSortAnyArray) {
 		///////////////////////////////////
 		// read argument 0 (TargetArray) //
 		///////////////////////////////////
@@ -114,7 +114,7 @@ public:
 
 		// Perform the sort
 		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
-		GenericSortArbitraryArray(TargetArrayAddr, *TargetArrayProperty,
+		GenericSortAnyArray(TargetArrayAddr, *TargetArrayProperty,
 		                          *ComparisonFunction);
 
 		// end of native processing
