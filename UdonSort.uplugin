@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "Sort Any Array",
-	"Description": "A plugin for sorting arrays of any type.",
+	"Description": "A plugin for sorting an array of any type.",
 	"Category": "Other",
 	"CreatedBy": "Udon-Tobira",
 	"CreatedByURL": "",
