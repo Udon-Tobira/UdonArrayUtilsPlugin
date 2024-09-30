@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class Sort : ModuleRules
+public class UdonSort : ModuleRules
 {
-    public Sort(ReadOnlyTargetRules Target) : base(Target)
+    public UdonSort(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 

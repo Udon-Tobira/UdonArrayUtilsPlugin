@@ -2,7 +2,7 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "1.0",
-	"FriendlyName": "Sort",
+	"FriendlyName": "Sort Arbitrary Array",
 	"Description": "A plugin for sorting arrays of any type.",
 	"Category": "Other",
 	"CreatedBy": "Udon-Tobira",
@@ -16,7 +16,7 @@
 	"Installed": false,
 	"Modules": [
 		{
-			"Name": "Sort",
+			"Name": "UdonSort",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}

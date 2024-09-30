@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright 2024 Udon-Tobira, All Rights Reserved.
 
 #pragma once
 
@@ -14,7 +14,7 @@
  * Blueprint Function Library of sorting-related functions.
  */
 UCLASS()
-class SORT_API UBlueprintSortLibrary: public UBlueprintFunctionLibrary {
+class UDONSORT_API UUdonBlueprintSortLibrary: public UBlueprintFunctionLibrary {
 	GENERATED_BODY()
 
 public:
@@ -104,7 +104,7 @@ public:
 		// if comparison function isn't exist
 		if (!ComparisonFunction) {
 			// output error
-			UE_LOG(LogBlueprintSortLibrary, Error,
+			UE_LOG(LogUdonBlueprintSortLibrary, Error,
 			       TEXT("Comparison function '%s' not found on object: %s"),
 			       *ComparisonFunctionName.ToString(), *Object->GetName());
 
