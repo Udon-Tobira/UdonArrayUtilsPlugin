@@ -2,50 +2,331 @@
 
 #include "ArrayUtilsLibrary.h"
 
+#include <algorithm>
+#include <iterator>
+#include <optional>
+
+namespace udon {
 /**
  * A class that can be used to swap memory areas for the actual target.
  * Swapping an instance of this class with the Swap function will swap the
  * contents in the actual memory.
  */
-class UdonTransparentlySwappablePtr {
+class memory_transparent_reference {
 public:
 	// constructor
-	UdonTransparentlySwappablePtr(void* InTargetPtr, int32 InSize)
-	    : TargetPtr(InTargetPtr), Size(InSize) {}
+	memory_transparent_reference(void* InTargetPtr, int32 InSize) noexcept
+	    : target_ptr(InTargetPtr), mem_size(InSize), newed_ptr(false) {}
 
-	// delete copy, move constructors
-	UdonTransparentlySwappablePtr(const UdonTransparentlySwappablePtr&)  = delete;
-	UdonTransparentlySwappablePtr(UdonTransparentlySwappablePtr&& other) = delete;
+	// copy constructor
+	memory_transparent_reference(
+	    const memory_transparent_reference& other) noexcept
+	    : target_ptr(std::malloc(other.mem_size)), mem_size(other.mem_size),
+	      newed_ptr(true) {
+		// copy value
+		std::memcpy(target_ptr, other.target_ptr, mem_size);
+	}
+
+	// move constructor
+	memory_transparent_reference(memory_transparent_reference&& other) noexcept
+	    : memory_transparent_reference(other) {}
 
 public:
-	// delete copy, move assignment operators
-	UdonTransparentlySwappablePtr&
-	    operator=(const UdonTransparentlySwappablePtr& other) = delete;
-	UdonTransparentlySwappablePtr&
-	    operator=(UdonTransparentlySwappablePtr&& other) = delete;
+	// copy assignment operator
+	memory_transparent_reference&
+	    operator=(const memory_transparent_reference& other) {
+		// if memory size is different
+		if (mem_size != other.mem_size) {
+			// throw exception
+			throw std::invalid_argument("memory size of this and other is different");
+		}
+
+		// copy value
+		std::memcpy(target_ptr, other.target_ptr, mem_size);
+
+		// return self
+		return *this;
+	}
+
+	// move assignment operator
+	memory_transparent_reference&
+	    operator=(memory_transparent_reference&& other) {
+		// copy assign
+		return *this = other;
+	}
 
 public:
-	void*       TargetPtr;
-	const int32 Size;
+	// swap
+	friend void swap(memory_transparent_reference& a,
+	                 memory_transparent_reference& b) {
+		// if memory size is different
+		if (a.mem_size != b.mem_size) {
+			// throw exception
+			throw std::invalid_argument("memory sizes are different from each other");
+		}
+
+		FMemory::Memswap(a.target_ptr, b.target_ptr, a.mem_size);
+	}
+
+public:
+	// destructor
+	~memory_transparent_reference() noexcept {
+		// if this class allocates the memory of target_ptr
+		if (newed_ptr) {
+			// free memory
+			std::free(target_ptr);
+		}
+	}
+
+public:
+	void* target_ptr;
+	int32 mem_size;
+	bool  newed_ptr;
 };
 
-/**
- * swap instances of UdonTransparentlySwappablePtr
- */
-template <>
-inline void Swap(UdonTransparentlySwappablePtr& A,
-                 UdonTransparentlySwappablePtr& B) {
-	// The size of the point destination of A must be as same as the size of the
-	// point destination of B.
-	check(A.Size == B.Size);
+class ScriptArrayHelperConstIterator {
+public:
+	using iterator_category = std::random_access_iterator_tag;
+	using value_type        = memory_transparent_reference;
+	using reference         = const value_type&;
+	using difference_type   = int32;
+	using pointer           = const value_type*;
 
-	// swap contents of TargetPtr
-	FMemory::Memswap(A.TargetPtr, B.TargetPtr, A.Size);
-}
+public:
+	// default constructor
+	ScriptArrayHelperConstIterator() noexcept
+	    : ArrayHelper(nullptr), element_size(), index() {}
+
+	// constructor
+	ScriptArrayHelperConstIterator(FScriptArrayHelper& InArrayHelper,
+	                               const int32         in_element_size,
+	                               const int32         in_index) noexcept
+	    : ArrayHelper(&InArrayHelper), element_size(in_element_size),
+	      index(in_index) {}
+
+	// copy constructor
+	ScriptArrayHelperConstIterator(
+	    const ScriptArrayHelperConstIterator& other) noexcept
+	    : ArrayHelper(other.ArrayHelper), element_size(other.element_size),
+	      index(other.index) {}
+
+public:
+	// dereference operator
+	[[nodiscard]] reference operator*() const noexcept {
+		return const_cast<ScriptArrayHelperConstIterator*>(this)->ref.emplace(
+		    ArrayHelper->GetRawPtr(index), element_size);
+	}
+
+	// prefix increment operator
+	ScriptArrayHelperConstIterator& operator++() noexcept {
+		++index;
+		return *this;
+	}
+
+	// postfix increment operator
+	[[nodiscard]] ScriptArrayHelperConstIterator operator++(int) noexcept {
+		auto tmp = *this;
+		++*this;
+		return tmp;
+	}
+
+	// prefix decrement operator
+	ScriptArrayHelperConstIterator& operator--() noexcept {
+		--index;
+		return *this;
+	}
+
+	// postfix decrement operator
+	[[nodiscard]] ScriptArrayHelperConstIterator operator--(int) noexcept {
+		auto tmp = *this;
+		--*this;
+		return tmp;
+	}
+
+	// ScriptArrayHelperConstIterator += offset operator
+	ScriptArrayHelperConstIterator&
+	    operator+=(const difference_type offset) noexcept {
+		index += offset;
+		return *this;
+	}
+
+	// ScriptArrayHelperConstIterator + offset operator
+	[[nodiscard]] ScriptArrayHelperConstIterator
+	    operator+(const difference_type offset) const noexcept {
+		auto tmp = *this;
+		tmp += offset;
+		return tmp;
+	}
+
+	// offset + ScriptArrayHelperConstIterator operator
+	[[nodiscard]] friend ScriptArrayHelperConstIterator
+	    operator+(const difference_type                 offset,
+	              const ScriptArrayHelperConstIterator& other) noexcept {
+		return other + offset;
+	}
+
+	// ScriptArrayHelperConstIterator -= offset operator
+	ScriptArrayHelperConstIterator&
+	    operator-=(const difference_type offset) noexcept {
+		return *this += -offset;
+	}
+
+	// ScriptArrayHelperConstIterator - offset operator
+	[[nodiscard]] ScriptArrayHelperConstIterator
+	    operator-(const difference_type offset) const noexcept {
+		return *this + (-offset);
+	}
+
+	// ScriptArrayHelperConstIterator - ScriptArrayHelperConstIterator operator
+	[[nodiscard]] difference_type
+	    operator-(const ScriptArrayHelperConstIterator& other) const noexcept {
+		return index - other.index;
+	}
+
+	// [] operator
+	[[nodiscard]] reference
+	    operator[](const difference_type offset) const noexcept {
+		return *(*this + offset);
+	}
+
+	// == operator
+	[[nodiscard]] bool
+	    operator==(const ScriptArrayHelperConstIterator& other) const noexcept {
+		return index == other.index;
+	}
+
+	// != operator
+	[[nodiscard]] bool
+	    operator!=(const ScriptArrayHelperConstIterator& other) const noexcept {
+		return !(*this == other);
+	}
+
+	// < operator
+	[[nodiscard]] bool
+	    operator<(const ScriptArrayHelperConstIterator& other) const noexcept {
+		return index < other.index;
+	}
+
+	// > operator
+	[[nodiscard]] bool
+	    operator>(const ScriptArrayHelperConstIterator& other) const noexcept {
+		return index > other.index;
+	}
+
+	// <= operator
+	[[nodiscard]] bool
+	    operator<=(const ScriptArrayHelperConstIterator& other) const noexcept {
+		return !(*this > other);
+	}
+
+	// >= operator
+	[[nodiscard]] bool
+	    operator>=(const ScriptArrayHelperConstIterator& other) const noexcept {
+		return !(*this < other);
+	}
+
+private:
+	std::optional<memory_transparent_reference> ref;
+	FScriptArrayHelper*                         ArrayHelper;
+	int32                                       element_size;
+	int32                                       index;
+};
+class ScriptArrayHelperIterator: public ScriptArrayHelperConstIterator {
+public:
+	using iterator_category = std::random_access_iterator_tag;
+	using value_type        = memory_transparent_reference;
+	using reference         = value_type&;
+	using difference_type   = int32;
+	using pointer           = value_type*;
+
+public:
+	// inheriting constructors
+	using ScriptArrayHelperConstIterator::ScriptArrayHelperConstIterator;
+
+public:
+	// dereference operator
+	[[nodiscard]] reference operator*() const noexcept {
+		return const_cast<reference>(ScriptArrayHelperConstIterator::operator*());
+	}
+
+	// prefix increment operator
+	ScriptArrayHelperIterator& operator++() noexcept {
+		ScriptArrayHelperConstIterator::operator++();
+		return *this;
+	}
+
+	// postfix increment operator
+	[[nodiscard]] ScriptArrayHelperIterator operator++(int) noexcept {
+		auto tmp = *this;
+		ScriptArrayHelperConstIterator::operator++();
+		return tmp;
+	}
+
+	// prefix decrement operator
+	ScriptArrayHelperIterator& operator--() noexcept {
+		ScriptArrayHelperConstIterator::operator--();
+		return *this;
+	}
+
+	// postfix decrement operator
+	[[nodiscard]] ScriptArrayHelperIterator operator--(int) noexcept {
+		auto tmp = *this;
+		ScriptArrayHelperConstIterator::operator--();
+		return tmp;
+	}
+
+	// ScriptArrayHelperIterator += offset operator
+	ScriptArrayHelperIterator& operator+=(const difference_type offset) noexcept {
+		ScriptArrayHelperConstIterator::operator+=(offset);
+		return *this;
+	}
+
+	// ScriptArrayHelperIterator + offset operator
+	[[nodiscard]] ScriptArrayHelperIterator
+	    operator+(const difference_type offset) const noexcept {
+		auto tmp = *this;
+		tmp += offset;
+		return tmp;
+	}
+
+	// offset + ScriptArrayHelperIterator operator
+	[[nodiscard]] friend ScriptArrayHelperIterator
+	    operator+(const difference_type            offset,
+	              const ScriptArrayHelperIterator& other) noexcept {
+		return other + offset;
+	}
+
+	// ScriptArrayHelperIterator -= offset operator
+	ScriptArrayHelperIterator& operator-=(const difference_type offset) noexcept {
+		ScriptArrayHelperConstIterator::operator-=(offset);
+		return *this;
+	}
+
+	// ScriptArrayHelperIterator - ScriptArrayHelperIterator operator
+	using ScriptArrayHelperConstIterator::operator-;
+
+	// ScriptArrayHelperIterator - offset operator
+	[[nodiscard]] ScriptArrayHelperIterator
+	    operator-(const difference_type offset) const noexcept {
+		auto tmp = *this;
+		tmp -= offset;
+		return tmp;
+	}
+
+	// [] operator
+	[[nodiscard]] reference
+	    operator[](const difference_type offset) const noexcept {
+		return const_cast<reference>(
+		    ScriptArrayHelperConstIterator::operator[](offset));
+	}
+};
+} // namespace udon
 
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(
-    void* TargetArray, const FArrayProperty& ArrayProperty,
+    void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
+	using namespace udon;
+
 	// helper to allow manipulation of the actual array
 	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
 
@@ -58,41 +339,46 @@ void UUdonArrayUtilsLibrary::GenericSortAnyArray(
 	// get the size of one element
 	const auto& ElemSize = ElemProp->ElementSize;
 
-	// create array of UdonTransparentlySwappablePtr for TargetArray
-	TArray<UdonTransparentlySwappablePtr> TransparentlySorter;
-	TransparentlySorter.Reserve(NumArray);
-	for (auto i = decltype(NumArray){0}; i < NumArray; ++i) {
-		TransparentlySorter.Emplace(ArrayHelper.GetRawPtr(i), ElemSize);
-	}
+	// allocate memory for function parameters
+	// argument A, B (2 * ElemSize)
+	// return value (sizeof(bool))
+	void* const ComparisonFunctionParam =
+	    std::malloc(ElemSize + ElemSize + sizeof(bool));
 
 	// sort the elements of TargetArray
-	TransparentlySorter.Sort([&](const UdonTransparentlySwappablePtr& A,
-	                             const UdonTransparentlySwappablePtr& B) {
-		// get raw pointer of A
-		const auto* const PtrA = A.TargetPtr;
+	std::sort(
+	    ScriptArrayHelperIterator(ArrayHelper, ElemSize, 0),
+	    ScriptArrayHelperIterator(ArrayHelper, ElemSize, NumArray),
+	    [&](const memory_transparent_reference& a,
+	        const memory_transparent_reference& b) {
+		    // check sizes
+		    check(ElemSize == a.mem_size);
+		    check(ElemSize == b.mem_size);
 
-		// get raw pointer of B
-		const auto* const PtrB = B.TargetPtr;
+		    // get raw pointer of a
+		    const auto* const ptr_a = a.target_ptr;
 
-		// allocate memory for function parameters
-		// argument A, B (2 * ElemSize)
-		// return value (sizeof(bool))
-		void* ComparisonFunctionParam = FMemory_Alloca(2 * ElemSize + sizeof(bool));
+		    // get raw pointer of b
+		    const auto* const ptr_b = b.target_ptr;
 
-		// copy data to ComparisonFunctionParam
-		FMemory::Memcpy(ComparisonFunctionParam, PtrA, ElemSize);
-		FMemory::Memcpy(static_cast<uint8*>(ComparisonFunctionParam) + ElemSize,
-		                PtrB, ElemSize);
+		    // copy data to ComparisonFunctionParam
+		    std::memcpy(ComparisonFunctionParam, ptr_a, a.mem_size);
+		    std::memcpy(static_cast<uint8*>(ComparisonFunctionParam) + a.mem_size,
+		                ptr_b, b.mem_size);
 
-		// call ComparisonFunction
-		ComparisonFunction.GetOuter()->ProcessEvent(&ComparisonFunction,
-		                                            ComparisonFunctionParam);
+		    // call ComparisonFunction
+		    ComparisonFunction.GetOuter()->ProcessEvent(&ComparisonFunction,
+		                                                ComparisonFunctionParam);
 
-		// get the result of ComparisonFunction call
-		bool ComparisonResult = *reinterpret_cast<bool*>(
-		    static_cast<uint8*>(ComparisonFunctionParam) + 2 * ElemSize);
+		    // get the result of ComparisonFunction call
+		    bool ComparisonResult = *reinterpret_cast<bool*>(
+		        static_cast<uint8*>(ComparisonFunctionParam) + a.mem_size +
+		        b.mem_size);
 
-		// return ComparisonResult
-		return ComparisonResult;
-	});
+		    // return ComparisonResult
+		    return ComparisonResult;
+	    });
+
+	// free memory
+	std::free(ComparisonFunctionParam);
 }
