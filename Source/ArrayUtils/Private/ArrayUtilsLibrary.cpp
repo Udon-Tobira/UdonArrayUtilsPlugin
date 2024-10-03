@@ -1,6 +1,6 @@
 // Copyright 2024 Udon-Tobira, All Rights Reserved.
 
-#include "BlueprintSortLibrary.h"
+#include "ArrayUtilsLibrary.h"
 
 /**
  * A class that can be used to swap memory areas for the actual target.
@@ -43,7 +43,7 @@ inline void Swap(UdonTransparentlySwappablePtr& A,
 	FMemory::Memswap(A.TargetPtr, B.TargetPtr, A.Size);
 }
 
-void UUdonBlueprintSortLibrary::GenericSortAnyArray(
+void UUdonArrayUtilsLibrary::GenericSortAnyArray(
     void* TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
 	// helper to allow manipulation of the actual array

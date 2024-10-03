@@ -4,17 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "LogBlueprintSortLibrary.h"
+#include "LogArrayUtilsLibrary.h"
 #include "Net/Core/PushModel/PushModel.h"
 #include "UObject/UnrealType.h"
 
-#include "BlueprintSortLibrary.generated.h"
+#include "ArrayUtilsLibrary.generated.h"
 
 /**
- * Blueprint Function Library of sorting-related functions.
+ * Blueprint Function Library of array-related functions.
  */
 UCLASS()
-class ARRAYUTILS_API UUdonBlueprintSortLibrary: public UBlueprintFunctionLibrary {
+class ARRAYUTILS_API UUdonArrayUtilsLibrary: public UBlueprintFunctionLibrary {
 	GENERATED_BODY()
 
 public:
@@ -104,7 +104,7 @@ public:
 		// if comparison function isn't exist
 		if (!ComparisonFunction) {
 			// output error
-			UE_LOG(LogUdonBlueprintSortLibrary, Error,
+			UE_LOG(LogUdonArrayUtilsLibrary, Error,
 			       TEXT("Comparison function '%s' not found on object: %s"),
 			       *ComparisonFunctionName.ToString(), *Object->GetName());
 
