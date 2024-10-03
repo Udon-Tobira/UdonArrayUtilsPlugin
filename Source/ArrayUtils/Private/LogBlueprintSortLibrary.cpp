@@ -1,5 +1,5 @@
 // Copyright 2024 Udon-Tobira, All Rights Reserved.
 
-#include "LogBlueprintSortLibrary.h"
+#include "LogArrayUtilsLibrary.h"
 
-DEFINE_LOG_CATEGORY(LogUdonBlueprintSortLibrary)
+DEFINE_LOG_CATEGORY(LogUdonArrayUtilsLibrary)
