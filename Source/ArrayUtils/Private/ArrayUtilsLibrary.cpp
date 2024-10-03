@@ -343,12 +343,15 @@ void UUdonArrayUtilsLibrary::GenericSortAnyArray(
 	// argument A, B (2 * ElemSize)
 	// return value (sizeof(bool))
 	void* const ComparisonFunctionParam =
-	    std::malloc(ElemSize + ElemSize + sizeof(bool));
+	    ::operator new(ElemSize + ElemSize + sizeof(bool));
+
+	// create the begin and end iterators of the TargetArray
+	auto begin = ScriptArrayHelperIterator(ArrayHelper, ElemSize, 0);
+	auto end   = ScriptArrayHelperIterator(ArrayHelper, ElemSize, NumArray);
 
 	// sort the elements of TargetArray
 	std::sort(
-	    ScriptArrayHelperIterator(ArrayHelper, ElemSize, 0),
-	    ScriptArrayHelperIterator(ArrayHelper, ElemSize, NumArray),
+	    begin, end,
 	    [&](const memory_transparent_reference& a,
 	        const memory_transparent_reference& b) {
 		    // check sizes
@@ -379,6 +382,6 @@ void UUdonArrayUtilsLibrary::GenericSortAnyArray(
 		    return ComparisonResult;
 	    });
 
-	// free memory
-	std::free(ComparisonFunctionParam);
+	// delete memory
+	::operator delete(ComparisonFunctionParam);
 }
