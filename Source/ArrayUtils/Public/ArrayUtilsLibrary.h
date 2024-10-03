@@ -101,7 +101,7 @@ public:
 		const auto& ComparisonFunction =
 		    Object->FindFunction(ComparisonFunctionName);
 
-		// if comparison function isn't exist
+		// if comparison function doesn't exist
 		if (!ComparisonFunction) {
 			// output error
 			UE_LOG(LogUdonArrayUtilsLibrary, Error,
