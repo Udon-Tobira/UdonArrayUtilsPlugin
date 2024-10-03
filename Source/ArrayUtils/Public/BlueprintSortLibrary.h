@@ -14,7 +14,7 @@
  * Blueprint Function Library of sorting-related functions.
  */
 UCLASS()
-class UDONSORT_API UUdonBlueprintSortLibrary: public UBlueprintFunctionLibrary {
+class ARRAYUTILS_API UUdonBlueprintSortLibrary: public UBlueprintFunctionLibrary {
 	GENERATED_BODY()
 
 public:
