@@ -17,7 +17,17 @@ UCLASS()
 class ARRAYUTILS_API UUdonArrayUtilsLibrary: public UBlueprintFunctionLibrary {
 	GENERATED_BODY()
 
+	// <algorithm>
 public:
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
+	          CustomThunk,
+	          meta = (CompactNodeTitle = "All", DefaultToSelf = "Object",
+	                  ArrayParm = "TargetArray"))
+	static bool AllSatisfy(const TArray<int32>& TargetArray, UObject* Object,
+	                       const FName& ComparisonFunctionName);
+	// memo: TArray<int32> is actually, TArray<WildCard> type. (because of
+	// CustomThunk)
+
 	/**
 	 * Sort an array of any type according to the order of the specified
 	 * comparison function.
@@ -39,6 +49,10 @@ public:
 	// CustomThunk)
 
 public:
+	static bool GenericAllSatisfy(const void*           TargetArray,
+	                              const FArrayProperty& ArrayProperty,
+	                              UFunction&            ComparisonFunction);
+
 	/**
 	 * Sort an array according to the order of the specified comparison function.
 	 * @param TargetArray  pointer to sort target array
@@ -54,6 +68,73 @@ public:
 	                                UFunction&            ComparisonFunction);
 
 public:
+	DECLARE_FUNCTION(execAllSatisfy) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// if failed to read an array
+		if (!Stack.MostRecentProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		// get pointer to read array
+		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		//////////////////////////////
+		// read argument 1 (Object) //
+		//////////////////////////////
+		P_GET_PROPERTY(FObjectProperty, Object);
+
+		//////////////////////////////////////////////
+		// read argument 2 (ComparisonFunctionName) //
+		//////////////////////////////////////////////
+		P_GET_PROPERTY(FNameProperty, ComparisonFunctionName);
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// get ComparisonFunction on Object
+		const auto& ComparisonFunction =
+		    Object->FindFunction(ComparisonFunctionName);
+
+		// if comparison function doesn't exist
+		if (!ComparisonFunction) {
+			// output error
+			UE_LOG(LogUdonArrayUtilsLibrary, Error,
+			       TEXT("Comparison function '%s' not found on object: %s"),
+			       *ComparisonFunctionName.ToString(), *Object->GetName());
+
+			// finish
+			return;
+		}
+
+		// Perform the sort
+		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+		*static_cast<bool*>(RESULT_PARAM) = GenericAllSatisfy(
+		    TargetArrayAddr, *TargetArrayProperty, *ComparisonFunction);
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
 	DECLARE_FUNCTION(execSortAnyArray) {
 		///////////////////////////////////
 		// read argument 0 (TargetArray) //

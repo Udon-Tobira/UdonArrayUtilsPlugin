@@ -322,6 +322,61 @@ public:
 };
 } // namespace udon
 
+bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
+    const void* const TargetArray, const FArrayProperty& ArrayProperty,
+    UFunction& Predicate) {
+	using namespace udon;
+
+	// helper to allow manipulation of the actual array
+	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
+
+	// get length of the array
+	const auto& NumArray = ArrayHelper.Num();
+
+	// get property of the element
+	FProperty* ElemProp = ArrayProperty.Inner;
+
+	// get the size of one element
+	const auto& ElemSize = ElemProp->ElementSize;
+
+	// allocate memory for function parameters
+	// argument ElemSize
+	// return value (sizeof(bool))
+	void* const PredParam = std::malloc(ElemSize + sizeof(bool));
+
+	// create the begin and end iterators of the TargetArray
+	auto begin = ScriptArrayHelperIterator(ArrayHelper, ElemSize, 0);
+	auto end   = ScriptArrayHelperIterator(ArrayHelper, ElemSize, NumArray);
+
+	// Check if all elements of TargetArray satisfy Predicate
+	auto bIsAllSatisfy =
+	    std::all_of(begin, end, [&](const memory_transparent_reference& elem) {
+		    // check sizes
+		    check(ElemSize == elem.mem_size);
+
+		    // get raw pointer of elem
+		    const auto* const ptr_elem = elem.target_ptr;
+
+		    // copy data to PredParam
+		    std::memcpy(PredParam, ptr_elem, elem.mem_size);
+
+		    // call Predicate
+		    Predicate.GetOuter()->ProcessEvent(&Predicate, PredParam);
+
+		    // get the result of Predicate call
+		    bool ComparisonResult = *reinterpret_cast<bool*>(
+		        static_cast<uint8*>(PredParam) + elem.mem_size);
+
+		    // return ComparisonResult
+		    return ComparisonResult;
+	    });
+
+	// free memory
+	std::free(PredParam);
+
+	return bIsAllSatisfy;
+}
+
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(
     void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
