@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iterator>
 #include <optional>
+#include <stdexcept>
 
 namespace udon {
 /**
