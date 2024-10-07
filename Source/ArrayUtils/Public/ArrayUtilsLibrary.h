@@ -13,6 +13,8 @@
 /**
  * Blueprint Function Library of array-related functions.
  */
+// memo: In functions where CustomThunk is specified,
+// TArray<int32> is actually, TArray<WildCard> type.
 UCLASS()
 class ARRAYUTILS_API UUdonArrayUtilsLibrary: public UBlueprintFunctionLibrary {
 	GENERATED_BODY()
@@ -40,8 +42,6 @@ public:
 	                  KeyWords  = "all of predicate condition"))
 	static bool AllSatisfy(const TArray<int32>& TargetArray, UObject* Object,
 	                       const FName& PredicateName);
-	// memo: TArray<int32> is actually, TArray<WildCard> type. (because of
-	// CustomThunk)
 
 	/**
 	 * Checks whether any element of the array satisfies the specified predicate.
@@ -64,8 +64,6 @@ public:
 	                  KeyWords  = "any of predicate condition"))
 	static bool AnySatisfy(const TArray<int32>& TargetArray, UObject* Object,
 	                       const FName& PredicateName);
-	// memo: TArray<int32> is actually, TArray<WildCard> type. (because of
-	// CustomThunk)
 
 	/**
 	 * Sort an array of any type according to the order of the specified
@@ -85,8 +83,6 @@ public:
 	static void SortAnyArray(UPARAM(ref) TArray<int32>& TargetArray,
 	                         UObject*                   Object,
 	                         const FName&               ComparisonFunctionName);
-	// memo: TArray<int32> is actually, TArray<WildCard> type. (because of
-	// CustomThunk)
 
 public:
 	/**
