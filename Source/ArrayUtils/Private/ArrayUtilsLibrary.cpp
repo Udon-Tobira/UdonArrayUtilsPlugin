@@ -342,11 +342,11 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 	// allocate memory for function parameters
 	// argument ElemSize
 	// return value (sizeof(bool))
-	void* const PredParam = std::malloc(ElemSize + sizeof(bool));
+	void* const PredParam = ::operator new(ElemSize + sizeof(bool));
 
 	// create the begin and end iterators of the TargetArray
-	auto begin = ScriptArrayHelperIterator(ArrayHelper, ElemSize, 0);
-	auto end   = ScriptArrayHelperIterator(ArrayHelper, ElemSize, NumArray);
+	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemSize, 0);
+	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemSize, NumArray);
 
 	// Check if all elements of TargetArray satisfy Predicate
 	auto bIsAllSatisfy =
@@ -371,8 +371,8 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 		    return ComparisonResult;
 	    });
 
-	// free memory
-	std::free(PredParam);
+	// delete memory
+	::operator delete(PredParam);
 
 	return bIsAllSatisfy;
 }
