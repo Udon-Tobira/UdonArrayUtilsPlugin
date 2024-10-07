@@ -364,11 +364,11 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 		    Predicate.GetOuter()->ProcessEvent(&Predicate, PredParam);
 
 		    // get the result of Predicate call
-		    bool ComparisonResult = *reinterpret_cast<bool*>(
+		    bool PredicateResult = *reinterpret_cast<bool*>(
 		        static_cast<uint8*>(PredParam) + elem.mem_size);
 
 		    // return ComparisonResult
-		    return ComparisonResult;
+		    return PredicateResult;
 	    });
 
 	// delete memory
@@ -403,7 +403,7 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemSize, 0);
 	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemSize, NumArray);
 
-	// Check if all elements of TargetArray satisfy Predicate
+	// Check if any element of TargetArray satisfies Predicate
 	auto bIsAnySatisfy =
 	    std::any_of(begin, end, [&](const memory_transparent_reference& elem) {
 		    // check sizes
@@ -419,11 +419,11 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 		    Predicate.GetOuter()->ProcessEvent(&Predicate, PredParam);
 
 		    // get the result of Predicate call
-		    bool ComparisonResult = *reinterpret_cast<bool*>(
+		    bool PredicateResult = *reinterpret_cast<bool*>(
 		        static_cast<uint8*>(PredParam) + elem.mem_size);
 
 		    // return ComparisonResult
-		    return ComparisonResult;
+		    return PredicateResult;
 	    });
 
 	// delete memory
