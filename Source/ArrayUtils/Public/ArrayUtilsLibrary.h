@@ -36,7 +36,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
 	          meta = (CompactNodeTitle = "All", DefaultToSelf = "Object",
-	                  ArrayParm = "TargetArray"))
+	                  ArrayParm = "TargetArray",
+	                  KeyWords  = "all of predicate condition"))
 	static bool AllSatisfy(const TArray<int32>& TargetArray, UObject* Object,
 	                       const FName& PredicateName);
 	// memo: TArray<int32> is actually, TArray<WildCard> type. (because of
@@ -56,7 +57,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Utilities|Array|Sort", CustomThunk,
 	          meta = (CompactNodeTitle = "SORT", DefaultToSelf = "Object",
-	                  ArrayParm = "TargetArray"))
+	                  ArrayParm = "TargetArray", KeyWords = "sort order arrange"))
 	static void SortAnyArray(UPARAM(ref) TArray<int32>& TargetArray,
 	                         UObject*                   Object,
 	                         const FName&               ComparisonFunctionName);
