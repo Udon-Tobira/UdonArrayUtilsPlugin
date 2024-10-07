@@ -20,6 +20,30 @@ class ARRAYUTILS_API UUdonArrayUtilsLibrary: public UBlueprintFunctionLibrary {
 	// <algorithm>
 public:
 	/**
+	 * Checks whether any element of the array satisfies the specified predicate.
+	 * @param TargetArray  target array
+	 * @param Object  An object for which the predicate is defined.
+	 * @param PredicateName
+	 *    The name of a unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 * @return
+	 *    If the function specified in PredicateName for any element returns
+	 *    true, this function returns true; otherwise, returns false.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
+	          CustomThunk,
+	          meta = (CompactNodeTitle = "Any", DefaultToSelf = "Object",
+	                  ArrayParm = "TargetArray",
+	                  KeyWords  = "any of predicate condition"))
+	static bool AnySatisfy(const TArray<int32>& TargetArray, UObject* Object,
+	                       const FName& PredicateName);
+	// memo: TArray<int32> is actually, TArray<WildCard> type. (because of
+	// CustomThunk)
+
+	/**
 	 * Checks whether all elements of the array satisfy the specified predicate.
 	 * @param TargetArray  target array
 	 * @param Object  An object for which the predicate is defined.
@@ -66,6 +90,24 @@ public:
 
 public:
 	/**
+	 * Checks whether any element of the array satisfies the specified predicate.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param Predicate
+	 *    A unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 * @return
+	 *    If the function specified in PredicateName for any element returns
+	 *    true, this function returns true; otherwise, returns false.
+	 */
+	static bool GenericAnySatisfy(const void*           TargetArray,
+	                              const FArrayProperty& ArrayProperty,
+	                              UFunction&            Predicate);
+
+	/**
 	 * Checks whether all elements of the array satisfy the specified predicate.
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
@@ -99,6 +141,72 @@ public:
 	                                UFunction&            ComparisonFunction);
 
 public:
+	DECLARE_FUNCTION(execAnySatisfy) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// if failed to read an array
+		if (!Stack.MostRecentProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		// get pointer to read array
+		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		//////////////////////////////
+		// read argument 1 (Object) //
+		//////////////////////////////
+		P_GET_PROPERTY(FObjectProperty, Object);
+
+		//////////////////////////////////////////////
+		// read argument 2 (PredicateName) //
+		//////////////////////////////////////////////
+		P_GET_PROPERTY(FNameProperty, PredicateName);
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// get Predicate on Object
+		const auto& Predicate = Object->FindFunction(PredicateName);
+
+		// if predicate doesn't exist
+		if (!Predicate) {
+			// output error
+			UE_LOG(LogUdonArrayUtilsLibrary, Error,
+			       TEXT("Predicate '%s' not found on object: %s"),
+			       *PredicateName.ToString(), *Object->GetName());
+
+			// finish
+			return;
+		}
+
+		// Perform the sort
+		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+		*static_cast<bool*>(RESULT_PARAM) =
+		    GenericAnySatisfy(TargetArrayAddr, *TargetArrayProperty, *Predicate);
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
 	DECLARE_FUNCTION(execAllSatisfy) {
 		///////////////////////////////////
 		// read argument 0 (TargetArray) //
