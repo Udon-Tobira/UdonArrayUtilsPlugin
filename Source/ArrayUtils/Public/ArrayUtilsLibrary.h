@@ -19,12 +19,26 @@ class ARRAYUTILS_API UUdonArrayUtilsLibrary: public UBlueprintFunctionLibrary {
 
 	// <algorithm>
 public:
+	/**
+	 * Checks whether all elements of the array satisfy the specified predicate.
+	 * @param TargetArray  target array
+	 * @param Object  An object for which the predicate is defined.
+	 * @param PredicateName
+	 *    The name of a unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 * @return
+	 *    If the function specified in PredicateName for all elements returns
+	 *    true, this function returns true; otherwise, returns false.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
 	          meta = (CompactNodeTitle = "All", DefaultToSelf = "Object",
 	                  ArrayParm = "TargetArray"))
 	static bool AllSatisfy(const TArray<int32>& TargetArray, UObject* Object,
-	                       const FName& ComparisonFunctionName);
+	                       const FName& PredicateName);
 	// memo: TArray<int32> is actually, TArray<WildCard> type. (because of
 	// CustomThunk)
 
@@ -37,7 +51,8 @@ public:
 	 *    The name of a binary predicate function used to specify if one element
 	 *    should precede another. This must be a function that has two arguments
 	 *    of the same type as the array elements and returns a bool. You should
-	 *    return true if the first argument should precede the second.
+	 *    return true if the first argument should precede the second; otherwise,
+	 *    return false.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Utilities|Array|Sort", CustomThunk,
 	          meta = (CompactNodeTitle = "SORT", DefaultToSelf = "Object",
@@ -61,7 +76,8 @@ public:
 	 *    A binary predicate function used to specify if one element should
 	 *    precede another. This must be a function that has two arguments of the
 	 *    same type as the array elements and returns a bool. You should return
-	 *    true if the first argument should precede the second.
+	 *    true if the first argument should precede the second; otherwise,
+	 *    return false.
 	 */
 	static void GenericSortAnyArray(void*                 TargetArray,
 	                                const FArrayProperty& ArrayProperty,
@@ -101,9 +117,9 @@ public:
 		P_GET_PROPERTY(FObjectProperty, Object);
 
 		//////////////////////////////////////////////
-		// read argument 2 (ComparisonFunctionName) //
+		// read argument 2 (PredicateName) //
 		//////////////////////////////////////////////
-		P_GET_PROPERTY(FNameProperty, ComparisonFunctionName);
+		P_GET_PROPERTY(FNameProperty, PredicateName);
 
 		// end of reading arguments
 		P_FINISH;
@@ -111,16 +127,15 @@ public:
 		// beginning of native processing
 		P_NATIVE_BEGIN;
 
-		// get ComparisonFunction on Object
-		const auto& ComparisonFunction =
-		    Object->FindFunction(ComparisonFunctionName);
+		// get Predicate on Object
+		const auto& Predicate = Object->FindFunction(PredicateName);
 
-		// if comparison function doesn't exist
-		if (!ComparisonFunction) {
+		// if predicate doesn't exist
+		if (!Predicate) {
 			// output error
 			UE_LOG(LogUdonArrayUtilsLibrary, Error,
-			       TEXT("Comparison function '%s' not found on object: %s"),
-			       *ComparisonFunctionName.ToString(), *Object->GetName());
+			       TEXT("Predicate '%s' not found on object: %s"),
+			       *PredicateName.ToString(), *Object->GetName());
 
 			// finish
 			return;
@@ -128,8 +143,8 @@ public:
 
 		// Perform the sort
 		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
-		*static_cast<bool*>(RESULT_PARAM) = GenericAllSatisfy(
-		    TargetArrayAddr, *TargetArrayProperty, *ComparisonFunction);
+		*static_cast<bool*>(RESULT_PARAM) =
+		    GenericAllSatisfy(TargetArrayAddr, *TargetArrayProperty, *Predicate);
 
 		// end of native processing
 		P_NATIVE_END;
