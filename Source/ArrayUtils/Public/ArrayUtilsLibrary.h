@@ -21,6 +21,14 @@ class ARRAYUTILS_API UUdonArrayUtilsLibrary: public UBlueprintFunctionLibrary {
 
 	// <algorithm>
 public:
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
+	          CustomThunk,
+	          meta = (CompactNodeTitle = "Adj. Find", DefaultToSelf = "Object",
+	                  ArrayParm = "TargetArray",
+	                  KeyWords  = "adjacent find predicate"))
+	static int32 AdjacentFind(const TArray<int32>& TargetArray, UObject* Object,
+	                          const FName& BinaryPredicateName);
+
 	/**
 	 * Checks whether all elements of the array satisfy the specified predicate.
 	 * @param TargetArray  target array
@@ -85,6 +93,10 @@ public:
 	                         const FName&               ComparisonFunctionName);
 
 public:
+	static int32 GenericAdjacentFind(const void*           TargetArray,
+	                                 const FArrayProperty& ArrayProperty,
+	                                 UFunction&            BinaryPredicate);
+
 	/**
 	 * Checks whether all elements of the array satisfy the specified predicate.
 	 * @param TargetArray  target array
@@ -137,6 +149,72 @@ public:
 	                                UFunction&            ComparisonFunction);
 
 public:
+	DECLARE_FUNCTION(execAdjacentFind) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// if failed to read an array
+		if (!Stack.MostRecentProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		// get pointer to read array
+		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		//////////////////////////////
+		// read argument 1 (Object) //
+		//////////////////////////////
+		P_GET_PROPERTY(FObjectProperty, Object);
+
+		//////////////////////////////////////////////
+		// read argument 2 (BinaryPredicateName) //
+		//////////////////////////////////////////////
+		P_GET_PROPERTY(FNameProperty, BinaryPredicateName);
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// get BinaryPredicate on Object
+		const auto& BinaryPredicate = Object->FindFunction(BinaryPredicateName);
+
+		// if binary predicate doesn't exist
+		if (!BinaryPredicate) {
+			// output error
+			UE_LOG(LogUdonArrayUtilsLibrary, Error,
+			       TEXT("Binary predicate '%s' not found on object: %s"),
+			       *BinaryPredicateName.ToString(), *Object->GetName());
+
+			// finish
+			return;
+		}
+
+		// Perform the sort
+		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+		*static_cast<int32*>(RESULT_PARAM) = GenericAdjacentFind(
+		    TargetArrayAddr, *TargetArrayProperty, *BinaryPredicate);
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
 	DECLARE_FUNCTION(execAllSatisfy) {
 		///////////////////////////////////
 		// read argument 0 (TargetArray) //

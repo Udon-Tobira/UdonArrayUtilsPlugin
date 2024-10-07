@@ -322,6 +322,69 @@ public:
 };
 } // namespace udon
 
+int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
+    const void* TargetArray, const FArrayProperty& ArrayProperty,
+    UFunction& BinaryPredicate) {
+	using namespace udon;
+
+	// helper to allow manipulation of the actual array
+	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
+
+	// get length of the array
+	const auto& NumArray = ArrayHelper.Num();
+
+	// get property of the element
+	FProperty* ElemProp = ArrayProperty.Inner;
+
+	// get the size of one element
+	const auto& ElemSize = ElemProp->ElementSize;
+
+	// allocate memory for function parameters
+	// argument current, next (2 * ElemSize)
+	// return value (sizeof(bool))
+	void* const PredParam = ::operator new(ElemSize + ElemSize + sizeof(bool));
+
+	// create the begin and end iterators of the TargetArray
+	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemSize, 0);
+	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemSize, NumArray);
+
+	// Check if all elements of TargetArray satisfy Predicate
+	auto found_it = std::adjacent_find(
+	    begin, end,
+	    [&](const memory_transparent_reference& current,
+	        const memory_transparent_reference& next) {
+		    // check sizes
+		    check(ElemSize == current.mem_size);
+		    check(ElemSize == next.mem_size);
+
+		    // get raw pointer of current
+		    const auto* const ptr_current = current.target_ptr;
+
+		    // get raw pointer of next
+		    const auto* const ptr_next = next.target_ptr;
+
+		    // copy data to PredParam
+		    std::memcpy(PredParam, ptr_current, current.mem_size);
+		    std::memcpy(static_cast<uint8*>(PredParam) + current.mem_size, ptr_next,
+		                next.mem_size);
+
+		    // call BinaryPredicate
+		    BinaryPredicate.GetOuter()->ProcessEvent(&BinaryPredicate, PredParam);
+
+		    // get the result of BinaryPredicate call
+		    bool BinaryPredicateResult = *reinterpret_cast<bool*>(
+		        static_cast<uint8*>(PredParam) + current.mem_size + next.mem_size);
+
+		    // return BinaryPredicateResult
+		    return BinaryPredicateResult;
+	    });
+
+	// delete memory
+	::operator delete(PredParam);
+
+	return std::distance(begin, found_it);
+}
+
 bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
