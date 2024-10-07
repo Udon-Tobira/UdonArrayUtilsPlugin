@@ -69,7 +69,7 @@ public:
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
 	 * @param Predicate
-	 *    The name of a unary predicate function that defines whether the element
+	 *    A unary predicate function that defines whether the element
 	 *    satisfies the condition. This must be a function that has one argument
 	 *    of the same type as the array elements and returns a bool. If the
 	 *    element is considered to meet your intended condition, return true;
