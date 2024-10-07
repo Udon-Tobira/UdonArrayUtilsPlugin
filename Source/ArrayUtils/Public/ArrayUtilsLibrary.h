@@ -71,7 +71,7 @@ public:
 	 * @param TargetArray  sort target array
 	 * @param Object  An object for which the comparison function is defined.
 	 * @param ComparisonFunctionName
-	 *    The name of a binary predicate function used to specify if one element
+	 *    The name of a comparison function used to specify if one element
 	 *    should precede another. This must be a function that has two arguments
 	 *    of the same type as the array elements and returns a bool. You should
 	 *    return true if the first argument should precede the second; otherwise,
@@ -126,7 +126,7 @@ public:
 	 * @param TargetArray  pointer to sort target array
 	 * @param ArrayProperty  property of TargetArray
 	 * @param ComparisonFunction
-	 *    A binary predicate function used to specify if one element should
+	 *    A comparison function used to specify if one element should
 	 *    precede another. This must be a function that has two arguments of the
 	 *    same type as the array elements and returns a bool. You should return
 	 *    true if the first argument should precede the second; otherwise,
