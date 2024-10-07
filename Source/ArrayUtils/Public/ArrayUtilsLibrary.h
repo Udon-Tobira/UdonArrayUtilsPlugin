@@ -64,9 +64,23 @@ public:
 	// CustomThunk)
 
 public:
+	/**
+	 * Checks whether all elements of the array satisfy the specified predicate.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param Predicate
+	 *    The name of a unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 * @return
+	 *    If the function specified in PredicateName for all elements returns
+	 *    true, this function returns true; otherwise, returns false.
+	 */
 	static bool GenericAllSatisfy(const void*           TargetArray,
 	                              const FArrayProperty& ArrayProperty,
-	                              UFunction&            ComparisonFunction);
+	                              UFunction&            Predicate);
 
 	/**
 	 * Sort an array according to the order of the specified comparison function.
