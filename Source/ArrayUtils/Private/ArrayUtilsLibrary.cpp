@@ -112,6 +112,17 @@ public:
 	      index(other.index) {}
 
 public:
+	// copy assignment operator
+	ScriptArrayHelperConstIterator&
+	    operator=(const ScriptArrayHelperConstIterator& other) noexcept {
+		ArrayHelper  = other.ArrayHelper;
+		element_size = other.element_size;
+		index        = other.index;
+
+		return *this;
+	}
+
+public:
 	// dereference operator
 	[[nodiscard]] reference operator*() const noexcept {
 		return const_cast<ScriptArrayHelperConstIterator*>(this)->ref.emplace(
