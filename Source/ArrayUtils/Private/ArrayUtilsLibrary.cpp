@@ -500,7 +500,7 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 		    bool PredicateResult = *reinterpret_cast<bool*>(
 		        static_cast<uint8*>(PredParam) + elem.elem_prop.GetSize());
 
-		    // return ComparisonResult
+		    // return PredicateResult
 		    return PredicateResult;
 	    });
 
@@ -555,7 +555,7 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 		    bool PredicateResult = *reinterpret_cast<bool*>(
 		        static_cast<uint8*>(PredParam) + elem.elem_prop.GetSize());
 
-		    // return ComparisonResult
+		    // return PredicateResult
 		    return PredicateResult;
 	    });
 
