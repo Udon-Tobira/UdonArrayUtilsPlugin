@@ -581,6 +581,45 @@ int32 UUdonArrayUtilsLibrary::GenericCount(const void* const     TargetArray,
 	                  const_memory_transparent_reference(ItemToCount, *ElemProp));
 }
 
+int32 UUdonArrayUtilsLibrary::GenericCountIf(
+    const void* TargetArray, const FArrayProperty& ArrayProperty,
+    UFunction& Predicate) {
+	using namespace udon;
+
+	// helper to allow access to the actual array
+	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
+
+	// get length of the array
+	const auto& NumArray = ArrayHelper.Num();
+
+	// get property of the element
+	const auto* const ElemProp = ArrayProperty.Inner;
+
+	// get the size of one element
+	const auto& ElemSize = ElemProp->ElementSize;
+
+	// allocate memory for function parameters
+	// argument ElemSize
+	// return value (sizeof(bool))
+	void* const PredParam = ::operator new(ElemSize + sizeof(bool));
+
+	// create the begin and end iterators of the TargetArray
+	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, 0);
+	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, NumArray);
+
+	// Check if any element of TargetArray satisfies Predicate
+	auto bCount = std::count_if(
+	    begin, end,
+	    CreateLambdaToCallUFunction<bool,
+	                                const const_memory_transparent_reference&>(
+	        Predicate, PredParam, ElemSize));
+
+	// delete memory
+	::operator delete(PredParam);
+
+	return bCount;
+}
+
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(
     void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {

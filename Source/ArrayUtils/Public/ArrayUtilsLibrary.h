@@ -102,6 +102,14 @@ public:
 	static int32 Count(const TArray<int32>& TargetArray,
 	                   const int32&         ItemToCount);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
+	          CustomThunk,
+	          meta = (CompactNodeTitle = "COUNT IF", DefaultToSelf = "Object",
+	                  ArrayParm = "TargetArray",
+	                  KeyWords  = "count if predicate condition"))
+	static int32 CountIf(const TArray<int32>& TargetArray, UObject* Object,
+	                     const FName& PredicateName);
+
 	/**
 	 * Sort an array of any type according to the order of the specified
 	 * comparison function.
@@ -188,6 +196,10 @@ public:
 	static int32 GenericCount(const void*           TargetArray,
 	                          const FArrayProperty& ArrayProperty,
 	                          const void*           ItemToCount);
+
+	static int32 GenericCountIf(const void*           TargetArray,
+	                            const FArrayProperty& ArrayProperty,
+	                            UFunction&            Predicate);
 
 	/**
 	 * Sort an array according to the order of the specified comparison function.
@@ -450,6 +462,71 @@ public:
 		// Perform the count
 		*static_cast<int32*>(RESULT_PARAM) =
 		    GenericCount(TargetArrayAddr, *TargetArrayProperty, ItemToFindPtr);
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
+	DECLARE_FUNCTION(execCountIf) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// get pointer to read array
+		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		//////////////////////////////
+		// read argument 1 (Object) //
+		//////////////////////////////
+		P_GET_PROPERTY(FObjectProperty, Object);
+
+		//////////////////////////////////////////////
+		// read argument 2 (PredicateName) //
+		//////////////////////////////////////////////
+		P_GET_PROPERTY(FNameProperty, PredicateName);
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// get Predicate on Object
+		const auto& Predicate = Object->FindFunction(PredicateName);
+
+		// if predicate doesn't exist
+		if (!Predicate) {
+			// output error
+			UE_LOG(LogUdonArrayUtilsLibrary, Error,
+			       TEXT("Predicate '%s' not found on object: %s"),
+			       *PredicateName.ToString(), *Object->GetName());
+
+			// finish
+			return;
+		}
+
+		// Perform the any_of
+		*static_cast<int32*>(RESULT_PARAM) =
+		    GenericCountIf(TargetArrayAddr, *TargetArrayProperty, *Predicate);
 
 		// end of native processing
 		P_NATIVE_END;
