@@ -338,8 +338,11 @@ public:
 public:
 	// dereference operator
 	[[nodiscard]] reference operator*() const noexcept {
-		return const_cast<ScriptArrayHelperIterator*>(this)->ref.emplace(
-		    ArrayHelper->GetRawPtr(index), *ElementProperty);
+		// rebuild ref as needed and explitly ignore the [[nodiscard]] return value
+		static_cast<void>(ScriptArrayHelperConstIterator::operator*());
+
+		// return memory_transparent_reference
+		return const_cast<ScriptArrayHelperIterator*>(this)->ref.value();
 	}
 
 	// prefix increment operator
@@ -411,9 +414,6 @@ public:
 	    operator[](const difference_type offset) const noexcept {
 		return *(*this + offset);
 	}
-
-private:
-	std::optional<value_type> ref;
 };
 
 ScriptArrayHelperIterator begin(FScriptArrayHelper&    ArrayHelper,
