@@ -35,8 +35,7 @@ public:
 	 * @return
 	 *    Returns the index of the first element of the first pair of adjacent
 	 *    elements such that the function specified in BinaryPredicateName returns
-	 *    true. If not found, return the number of elements in the array
-	 *    (means out of index).
+	 *    true. If not found, returns INDEX_NONE (means out of index).
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
@@ -123,8 +122,8 @@ public:
 	 *    return true; otherwise, return false.
 	 * @return
 	 *    Returns the index of the first element of the first pair of adjacent
-	 *    elements such that BinaryPredicate returns true. If not found, return
-	 *    the number of elements in the array (means out of index).
+	 *    elements such that BinaryPredicate returns true. If not found, returns
+	 *    INDEX_NONE (means out of index).
 	 */
 	static int32 GenericAdjacentFind(const void*           TargetArray,
 	                                 const FArrayProperty& ArrayProperty,
