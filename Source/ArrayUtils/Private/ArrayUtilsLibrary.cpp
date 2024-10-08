@@ -335,7 +335,7 @@ public:
 } // namespace udon
 
 int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
-    const void* TargetArray, const FArrayProperty& ArrayProperty,
+    const void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& BinaryPredicate) {
 	using namespace udon;
 
@@ -453,7 +453,7 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 }
 
 bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
-    const void* TargetArray, const FArrayProperty& ArrayProperty,
+    const void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
 	using namespace udon;
 
