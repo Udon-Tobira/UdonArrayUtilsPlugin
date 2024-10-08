@@ -89,6 +89,12 @@ public:
 	static bool AnySatisfy(const TArray<int32>& TargetArray, UObject* Object,
 	                       const FName& PredicateName);
 
+	/**
+	 * Count the number of elements that match the specified element.
+	 * @param TargetArray  target array
+	 * @param ItemToCount  An element to be counted
+	 * @return  The number of elements that match ItemToCount.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
 	          meta = (CompactNodeTitle = "Count", DefaultToSelf = "Object",
@@ -173,6 +179,13 @@ public:
 	                              const FArrayProperty& ArrayProperty,
 	                              UFunction&            Predicate);
 
+	/**
+	 * Count the number of elements that match the specified element.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param ItemToCount  An element to be counted
+	 * @return  The number of elements that match ItemToCount.
+	 */
 	static int32 GenericCount(const void*           TargetArray,
 	                          const FArrayProperty& ArrayProperty,
 	                          const void*           ItemToCount);
