@@ -339,7 +339,7 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
     UFunction& BinaryPredicate) {
 	using namespace udon;
 
-	// helper to allow manipulation of the actual array
+	// helper to allow access to the actual array
 	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
 
 	// get length of the array
@@ -402,7 +402,7 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
     UFunction& Predicate) {
 	using namespace udon;
 
-	// helper to allow manipulation of the actual array
+	// helper to allow access to the actual array
 	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
 
 	// get length of the array
@@ -457,7 +457,7 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
     UFunction& Predicate) {
 	using namespace udon;
 
-	// helper to allow manipulation of the actual array
+	// helper to allow access to the actual array
 	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
 
 	// get length of the array
