@@ -89,6 +89,14 @@ public:
 	static bool AnySatisfy(const TArray<int32>& TargetArray, UObject* Object,
 	                       const FName& PredicateName);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
+	          CustomThunk,
+	          meta = (CompactNodeTitle = "Count", DefaultToSelf = "Object",
+	                  ArrayParm                = "TargetArray",
+	                  ArrayTypeDependentParams = "ItemToCount"))
+	static int32 Count(const TArray<int32>& TargetArray,
+	                   const int32&         ItemToCount);
+
 	/**
 	 * Sort an array of any type according to the order of the specified
 	 * comparison function.
@@ -164,6 +172,10 @@ public:
 	static bool GenericAnySatisfy(const void*           TargetArray,
 	                              const FArrayProperty& ArrayProperty,
 	                              UFunction&            Predicate);
+
+	static int32 GenericCount(const void*           TargetArray,
+	                          const FArrayProperty& ArrayProperty,
+	                          const void*           ItemToCount);
 
 	/**
 	 * Sort an array according to the order of the specified comparison function.
@@ -371,6 +383,61 @@ public:
 		// Perform the any_of
 		*static_cast<bool*>(RESULT_PARAM) =
 		    GenericAnySatisfy(TargetArrayAddr, *TargetArrayProperty, *Predicate);
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
+	DECLARE_FUNCTION(execCount) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// get pointer to read array
+		const void* const TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		///////////////////////////////////
+		// read argument 1 (ItemToCount) //
+		///////////////////////////////////
+		// Since ItemToCount isn't really an int, step the stack manually
+
+		// reset MostRecentPropertyAddress
+		Stack.MostRecentPropertyAddress = nullptr;
+
+		// read a value from Stack
+		Stack.StepCompiledIn<FProperty>(nullptr);
+
+		// get pointer to read value
+		const auto* const ItemToFindPtr = Stack.MostRecentPropertyAddress;
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// Perform the count
+		*static_cast<int32*>(RESULT_PARAM) =
+		    GenericCount(TargetArrayAddr, *TargetArrayProperty, ItemToFindPtr);
 
 		// end of native processing
 		P_NATIVE_END;
