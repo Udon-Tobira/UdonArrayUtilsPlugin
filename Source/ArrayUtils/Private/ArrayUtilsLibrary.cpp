@@ -650,8 +650,9 @@ void UUdonArrayUtilsLibrary::GenericSortAnyArray(
 	// sort the elements of TargetArray
 	std::sort(
 	    begin, end,
-	    CreateLambdaToCallUFunction<bool, const_memory_transparent_reference&,
-	                                const_memory_transparent_reference&>(
+	    CreateLambdaToCallUFunction<bool,
+	                                const const_memory_transparent_reference&,
+	                                const const_memory_transparent_reference&>(
 	        ComparisonFunction, ComparisonFunctionParam, ElemSize));
 
 	// delete memory
