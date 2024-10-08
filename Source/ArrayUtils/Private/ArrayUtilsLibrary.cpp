@@ -153,9 +153,9 @@ public:
 
 	// constructor
 	ScriptArrayHelperConstIterator(FScriptArrayHelper&    InArrayHelper,
-	                               const FProperty* const in_element_property,
+	                               const FProperty* const InElementProperty,
 	                               const int32            in_index) noexcept
-	    : ArrayHelper(&InArrayHelper), ElemProp(in_element_property),
+	    : ArrayHelper(&InArrayHelper), ElemProp(InElementProperty),
 	      index(in_index) {}
 
 	// copy constructor
@@ -391,6 +391,29 @@ private:
 	std::optional<value_type> ref;
 };
 
+ScriptArrayHelperIterator begin(FScriptArrayHelper&    ArrayHelper,
+                                const FProperty* const ElementProperty) {
+	return ScriptArrayHelperIterator(ArrayHelper, ElementProperty, 0);
+}
+ScriptArrayHelperIterator end(FScriptArrayHelper&    ArrayHelper,
+                              const FProperty* const ElementProperty) {
+	// get length of the array
+	const auto& NumArray = ArrayHelper.Num();
+
+	return ScriptArrayHelperIterator(ArrayHelper, ElementProperty, NumArray);
+}
+ScriptArrayHelperConstIterator cbegin(FScriptArrayHelper&    ArrayHelper,
+                                      const FProperty* const ElementProperty) {
+	return ScriptArrayHelperConstIterator(ArrayHelper, ElementProperty, 0);
+}
+ScriptArrayHelperConstIterator cend(FScriptArrayHelper&    ArrayHelper,
+                                    const FProperty* const ElementProperty) {
+	// get length of the array
+	const auto& NumArray = ArrayHelper.Num();
+
+	return ScriptArrayHelperConstIterator(ArrayHelper, ElementProperty, NumArray);
+}
+
 /**
  * Helper function to call a predicate function with one element.
  */
@@ -471,18 +494,18 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
 	const auto& ElemSize = ElemProp->ElementSize;
 
 	// create the begin and end iterators of the TargetArray
-	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, 0);
-	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, NumArray);
+	auto cbegin_it = cbegin(ArrayHelper, ElemProp);
+	auto cend_it   = cend(ArrayHelper, ElemProp);
 
 	// Find the first iterator that satisfy BinaryPredicate
 	auto found_it = std::adjacent_find(
-	    begin, end,
+	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&,
 	                                const const_memory_transparent_reference&>(
 	        BinaryPredicate, ElemSize));
 
-	return found_it < end ? std::distance(begin, found_it) : INDEX_NONE;
+	return found_it < cend_it ? std::distance(cbegin_it, found_it) : INDEX_NONE;
 }
 
 bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
@@ -503,12 +526,12 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 	const auto& ElemSize = ElemProp->ElementSize;
 
 	// create the begin and end iterators of the TargetArray
-	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, 0);
-	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, NumArray);
+	auto cbegin_it = cbegin(ArrayHelper, ElemProp);
+	auto cend_it   = cend(ArrayHelper, ElemProp);
 
 	// Check if all elements of TargetArray satisfy Predicate
 	auto bIsAllSatisfy = std::all_of(
-	    begin, end,
+	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
 	        Predicate, ElemSize));
@@ -534,12 +557,12 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 	const auto& ElemSize = ElemProp->ElementSize;
 
 	// create the begin and end iterators of the TargetArray
-	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, 0);
-	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, NumArray);
+	auto cbegin_it = cbegin(ArrayHelper, ElemProp);
+	auto cend_it   = cend(ArrayHelper, ElemProp);
 
 	// Check if any element of TargetArray satisfies Predicate
 	auto bIsAnySatisfy = std::any_of(
-	    begin, end,
+	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
 	        Predicate, ElemSize));
@@ -565,11 +588,11 @@ int32 UUdonArrayUtilsLibrary::GenericCount(const void* const     TargetArray,
 	const auto& ElemSize = ElemProp->ElementSize;
 
 	// create the begin and end iterators of the TargetArray
-	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, 0);
-	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, NumArray);
+	auto cbegin_it = cbegin(ArrayHelper, ElemProp);
+	auto cend_it   = cend(ArrayHelper, ElemProp);
 
 	// Count the number of elements matching ItemToCount
-	return std::count(begin, end,
+	return std::count(cbegin_it, cend_it,
 	                  const_memory_transparent_reference(ItemToCount, *ElemProp));
 }
 
@@ -591,12 +614,12 @@ int32 UUdonArrayUtilsLibrary::GenericCountIf(
 	const auto& ElemSize = ElemProp->ElementSize;
 
 	// create the begin and end iterators of the TargetArray
-	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, 0);
-	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, NumArray);
+	auto cbegin_it = cbegin(ArrayHelper, ElemProp);
+	auto cend_it   = cend(ArrayHelper, ElemProp);
 
 	// Check if any element of TargetArray satisfies Predicate
 	auto bCount = std::count_if(
-	    begin, end,
+	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
 	        Predicate, ElemSize));
@@ -622,12 +645,12 @@ void UUdonArrayUtilsLibrary::GenericSortAnyArray(
 	const auto& ElemSize = ElemProp->ElementSize;
 
 	// create the begin and end iterators of the TargetArray
-	auto begin = ScriptArrayHelperIterator(ArrayHelper, ElemProp, 0);
-	auto end   = ScriptArrayHelperIterator(ArrayHelper, ElemProp, NumArray);
+	auto begin_it = begin(ArrayHelper, ElemProp);
+	auto end_it   = end(ArrayHelper, ElemProp);
 
 	// sort the elements of TargetArray
 	std::sort(
-	    begin, end,
+	    begin_it, end_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&,
 	                                const const_memory_transparent_reference&>(
