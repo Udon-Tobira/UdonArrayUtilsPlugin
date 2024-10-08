@@ -160,21 +160,21 @@ public:
 		// read an array from Stack
 		Stack.StepCompiledIn<FArrayProperty>(nullptr);
 
-		// if failed to read an array
-		if (!Stack.MostRecentProperty) {
-			// notify that failed
-			Stack.bArrayContextFailed = true;
-
-			// finish
-			return;
-		}
-
 		// get pointer to read array
 		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
 
 		// get property of read array
 		FArrayProperty* TargetArrayProperty =
 		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
 
 		//////////////////////////////
 		// read argument 1 (Object) //
@@ -226,21 +226,21 @@ public:
 		// read an array from Stack
 		Stack.StepCompiledIn<FArrayProperty>(nullptr);
 
-		// if failed to read an array
-		if (!Stack.MostRecentProperty) {
-			// notify that failed
-			Stack.bArrayContextFailed = true;
-
-			// finish
-			return;
-		}
-
 		// get pointer to read array
 		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
 
 		// get property of read array
 		FArrayProperty* TargetArrayProperty =
 		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
 
 		//////////////////////////////
 		// read argument 1 (Object) //
@@ -292,21 +292,21 @@ public:
 		// read an array from Stack
 		Stack.StepCompiledIn<FArrayProperty>(nullptr);
 
-		// if failed to read an array
-		if (!Stack.MostRecentProperty) {
-			// notify that failed
-			Stack.bArrayContextFailed = true;
-
-			// finish
-			return;
-		}
-
 		// get pointer to read array
 		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
 
 		// get property of read array
 		FArrayProperty* TargetArrayProperty =
 		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
 
 		//////////////////////////////
 		// read argument 1 (Object) //
@@ -358,21 +358,21 @@ public:
 		// read an array from Stack
 		Stack.StepCompiledIn<FArrayProperty>(nullptr);
 
-		// if failed to read an array
-		if (!Stack.MostRecentProperty) {
-			// notify that failed
-			Stack.bArrayContextFailed = true;
-
-			// finish
-			return;
-		}
-
 		// get pointer to read array
 		void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
 
 		// get property of read array
 		FArrayProperty* TargetArrayProperty =
 		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
 
 		//////////////////////////////
 		// read argument 1 (Object) //
