@@ -206,8 +206,7 @@ public:
 			return;
 		}
 
-		// Perform the sort
-		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+		// Perform the adjacent find
 		*static_cast<int32*>(RESULT_PARAM) = GenericAdjacentFind(
 		    TargetArrayAddr, *TargetArrayProperty, *BinaryPredicate);
 
@@ -272,8 +271,7 @@ public:
 			return;
 		}
 
-		// Perform the sort
-		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+		// Perform the all_of
 		*static_cast<bool*>(RESULT_PARAM) =
 		    GenericAllSatisfy(TargetArrayAddr, *TargetArrayProperty, *Predicate);
 
@@ -338,8 +336,7 @@ public:
 			return;
 		}
 
-		// Perform the sort
-		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+		// Perform the any_of
 		*static_cast<bool*>(RESULT_PARAM) =
 		    GenericAnySatisfy(TargetArrayAddr, *TargetArrayProperty, *Predicate);
 
