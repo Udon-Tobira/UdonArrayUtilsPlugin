@@ -394,44 +394,60 @@ private:
 /**
  * Helper function to call a predicate function with one element.
  */
-template <class ReturnT, class... Args>
-static constexpr auto
-    CreateLambdaToCallUFunction(UFunction&  Predicate,
-                                void* const PredParamWorkingMemory,
-                                const int32 ElemSize) {
-	return [&](Args... args) {
+template <class ReturnT, class... ArgTs>
+static constexpr auto CreateLambdaToCallUFunction(UFunction&  Predicate,
+                                                  const int32 ElementSize) {
+	// Total memory size of Predicate arguments and return value
+	const auto& PredicateParamSize =
+	    (... + (std::is_base_of_v<const_memory_transparent_reference,
+	                              std::decay_t<ArgTs>>
+	                ? ElementSize
+	                : sizeof(ArgTs))) +
+	    sizeof(ReturnT);
+
+	// Working memory for Predicate parameters
+	std::shared_ptr<void> PredicateParamWorkingMemory(
+	    ::operator new(PredicateParamSize),
+	    [](void* const ptr) { ::operator delete(ptr); });
+
+	// retun lambda
+	return [&Predicate, ElementSize,
+	        PredParamWorkingMemory =
+	            std::move(PredicateParamWorkingMemory)](ArgTs... args) {
+		// working offset on PredicateParamWorkingMemory
 		size_t working_offset = 0;
 
 		(..., [&]() {
-			// if Args is derived from const_memory_transparent_reference
+			// if the ArgT is derived from const_memory_transparent_reference
 			if constexpr (std::is_base_of_v<const_memory_transparent_reference,
-			                                std::decay_t<Args>>) {
+			                                std::decay_t<ArgTs>>) {
 				// check size
-				check(ElemSize == args.elem_prop.GetSize());
+				check(ElementSize == args.elem_prop.GetSize());
 
 				// get raw pointer
 				const auto* const ptr = args.target_ptr;
 
 				// copy data to PredParam
-				std::memcpy(static_cast<uint8*>(PredParamWorkingMemory) +
+				std::memcpy(static_cast<uint8*>(PredParamWorkingMemory.get()) +
 				                working_offset,
-				            ptr, ElemSize);
+				            ptr, ElementSize);
 
-				// add ElemSize to working_offset
-				working_offset += ElemSize;
+				// add ElementSize to working_offset
+				working_offset += ElementSize;
 			} else {
 				static_assert(false, "not implemented");
 			}
 		}());
 
 		// call Predicate
-		Predicate.GetOuter()->ProcessEvent(&Predicate, PredParamWorkingMemory);
+		Predicate.GetOuter()->ProcessEvent(&Predicate,
+		                                   PredParamWorkingMemory.get());
 
 		// if return value is present
 		if constexpr (!std::is_same_v<void, ReturnT>) {
 			// return the result
 			return *reinterpret_cast<ReturnT*>(
-			    static_cast<uint8*>(PredParamWorkingMemory) + working_offset);
+			    static_cast<uint8*>(PredParamWorkingMemory.get()) + working_offset);
 		}
 	};
 }
@@ -454,11 +470,6 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
 	// get the size of one element
 	const auto& ElemSize = ElemProp->ElementSize;
 
-	// allocate memory for function parameters
-	// argument current, next (2 * ElemSize)
-	// return value (sizeof(bool))
-	void* const PredParam = ::operator new(ElemSize + ElemSize + sizeof(bool));
-
 	// create the begin and end iterators of the TargetArray
 	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, 0);
 	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, NumArray);
@@ -469,10 +480,7 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&,
 	                                const const_memory_transparent_reference&>(
-	        BinaryPredicate, PredParam, ElemSize));
-
-	// delete memory
-	::operator delete(PredParam);
+	        BinaryPredicate, ElemSize));
 
 	return found_it < end ? std::distance(begin, found_it) : INDEX_NONE;
 }
@@ -494,11 +502,6 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 	// get the size of one element
 	const auto& ElemSize = ElemProp->ElementSize;
 
-	// allocate memory for function parameters
-	// argument ElemSize
-	// return value (sizeof(bool))
-	void* const PredParam = ::operator new(ElemSize + sizeof(bool));
-
 	// create the begin and end iterators of the TargetArray
 	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, 0);
 	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, NumArray);
@@ -508,10 +511,7 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 	    begin, end,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
-	        Predicate, PredParam, ElemSize));
-
-	// delete memory
-	::operator delete(PredParam);
+	        Predicate, ElemSize));
 
 	return bIsAllSatisfy;
 }
@@ -533,11 +533,6 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 	// get the size of one element
 	const auto& ElemSize = ElemProp->ElementSize;
 
-	// allocate memory for function parameters
-	// argument ElemSize
-	// return value (sizeof(bool))
-	void* const PredParam = ::operator new(ElemSize + sizeof(bool));
-
 	// create the begin and end iterators of the TargetArray
 	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, 0);
 	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, NumArray);
@@ -547,10 +542,7 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 	    begin, end,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
-	        Predicate, PredParam, ElemSize));
-
-	// delete memory
-	::operator delete(PredParam);
+	        Predicate, ElemSize));
 
 	return bIsAnySatisfy;
 }
@@ -598,11 +590,6 @@ int32 UUdonArrayUtilsLibrary::GenericCountIf(
 	// get the size of one element
 	const auto& ElemSize = ElemProp->ElementSize;
 
-	// allocate memory for function parameters
-	// argument ElemSize
-	// return value (sizeof(bool))
-	void* const PredParam = ::operator new(ElemSize + sizeof(bool));
-
 	// create the begin and end iterators of the TargetArray
 	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, 0);
 	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, NumArray);
@@ -612,10 +599,7 @@ int32 UUdonArrayUtilsLibrary::GenericCountIf(
 	    begin, end,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
-	        Predicate, PredParam, ElemSize));
-
-	// delete memory
-	::operator delete(PredParam);
+	        Predicate, ElemSize));
 
 	return bCount;
 }
@@ -637,12 +621,6 @@ void UUdonArrayUtilsLibrary::GenericSortAnyArray(
 	// get the size of one element
 	const auto& ElemSize = ElemProp->ElementSize;
 
-	// allocate memory for function parameters
-	// argument A, B (2 * ElemSize)
-	// return value (sizeof(bool))
-	void* const ComparisonFunctionParam =
-	    ::operator new(ElemSize + ElemSize + sizeof(bool));
-
 	// create the begin and end iterators of the TargetArray
 	auto begin = ScriptArrayHelperIterator(ArrayHelper, ElemProp, 0);
 	auto end   = ScriptArrayHelperIterator(ArrayHelper, ElemProp, NumArray);
@@ -653,8 +631,5 @@ void UUdonArrayUtilsLibrary::GenericSortAnyArray(
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&,
 	                                const const_memory_transparent_reference&>(
-	        ComparisonFunction, ComparisonFunctionParam, ElemSize));
-
-	// delete memory
-	::operator delete(ComparisonFunctionParam);
+	        ComparisonFunction, ElemSize));
 }
