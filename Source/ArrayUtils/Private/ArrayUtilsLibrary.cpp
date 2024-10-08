@@ -565,6 +565,32 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 	return bIsAnySatisfy;
 }
 
+int32 UUdonArrayUtilsLibrary::GenericCount(const void* const     TargetArray,
+                                           const FArrayProperty& ArrayProperty,
+                                           const void* const     ItemToCount) {
+	using namespace udon;
+
+	// helper to allow access to the actual array
+	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
+
+	// get length of the array
+	const auto& NumArray = ArrayHelper.Num();
+
+	// get property of the element
+	const auto* const ElemProp = ArrayProperty.Inner;
+
+	// get the size of one element
+	const auto& ElemSize = ElemProp->ElementSize;
+
+	// create the begin and end iterators of the TargetArray
+	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, 0);
+	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemProp, NumArray);
+
+	// Count the number of elements matching ItemToCount
+	return std::count(begin, end,
+	                  const_memory_transparent_reference(ItemToCount, *ElemProp));
+}
+
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(
     void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
