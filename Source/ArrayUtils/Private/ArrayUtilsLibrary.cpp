@@ -390,6 +390,51 @@ public:
 private:
 	std::optional<value_type> ref;
 };
+
+/**
+ * Helper function to call a predicate function with one element.
+ */
+template <class ReturnT, class... Args>
+static constexpr auto
+    CreateLambdaToCallUFunction(UFunction&  Predicate,
+                                void* const PredParamWorkingMemory,
+                                const int32 ElemSize) {
+	return [&](Args... args) {
+		size_t working_offset = 0;
+
+		(..., [&]() {
+			// if Args is derived from const_memory_transparent_reference
+			if constexpr (std::is_base_of_v<const_memory_transparent_reference,
+			                                std::decay_t<Args>>) {
+				// check size
+				check(ElemSize == args.elem_prop.GetSize());
+
+				// get raw pointer
+				const auto* const ptr = args.target_ptr;
+
+				// copy data to PredParam
+				std::memcpy(static_cast<uint8*>(PredParamWorkingMemory) +
+				                working_offset,
+				            ptr, ElemSize);
+
+				// add ElemSize to working_offset
+				working_offset += ElemSize;
+			} else {
+				static_assert(false, "not implemented");
+			}
+		}());
+
+		// call Predicate
+		Predicate.GetOuter()->ProcessEvent(&Predicate, PredParamWorkingMemory);
+
+		// if return value is present
+		if constexpr (!std::is_same_v<void, ReturnT>) {
+			// return the result
+			return *reinterpret_cast<ReturnT*>(
+			    static_cast<uint8*>(PredParamWorkingMemory) + working_offset);
+		}
+	};
+}
 } // namespace udon
 
 int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
@@ -421,33 +466,10 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
 	// Find the first iterator that satisfy BinaryPredicate
 	auto found_it = std::adjacent_find(
 	    begin, end,
-	    [&](const const_memory_transparent_reference& current,
-	        const const_memory_transparent_reference& next) {
-		    // check sizes
-		    check(ElemSize == current.elem_prop.GetSize());
-		    check(ElemSize == next.elem_prop.GetSize());
-
-		    // get raw pointer of current
-		    const auto* const ptr_current = current.target_ptr;
-
-		    // get raw pointer of next
-		    const auto* const ptr_next = next.target_ptr;
-
-		    // copy data to PredParam
-		    std::memcpy(PredParam, ptr_current, ElemSize);
-		    std::memcpy(static_cast<uint8*>(PredParam) + ElemSize, ptr_next,
-		                ElemSize);
-
-		    // call BinaryPredicate
-		    BinaryPredicate.GetOuter()->ProcessEvent(&BinaryPredicate, PredParam);
-
-		    // get the result of BinaryPredicate call
-		    bool BinaryPredicateResult = *reinterpret_cast<bool*>(
-		        static_cast<uint8*>(PredParam) + ElemSize + ElemSize);
-
-		    // return BinaryPredicateResult
-		    return BinaryPredicateResult;
-	    });
+	    CreateLambdaToCallUFunction<bool,
+	                                const const_memory_transparent_reference&,
+	                                const const_memory_transparent_reference&>(
+	        BinaryPredicate, PredParam, ElemSize));
 
 	// delete memory
 	::operator delete(PredParam);
@@ -483,26 +505,10 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 
 	// Check if all elements of TargetArray satisfy Predicate
 	auto bIsAllSatisfy = std::all_of(
-	    begin, end, [&](const const_memory_transparent_reference& elem) {
-		    // check sizes
-		    check(ElemSize == elem.elem_prop.GetSize());
-
-		    // get raw pointer of elem
-		    const auto* const ptr_elem = elem.target_ptr;
-
-		    // copy data to PredParam
-		    std::memcpy(PredParam, ptr_elem, elem.elem_prop.GetSize());
-
-		    // call Predicate
-		    Predicate.GetOuter()->ProcessEvent(&Predicate, PredParam);
-
-		    // get the result of Predicate call
-		    bool PredicateResult = *reinterpret_cast<bool*>(
-		        static_cast<uint8*>(PredParam) + elem.elem_prop.GetSize());
-
-		    // return PredicateResult
-		    return PredicateResult;
-	    });
+	    begin, end,
+	    CreateLambdaToCallUFunction<bool,
+	                                const const_memory_transparent_reference&>(
+	        Predicate, PredParam, ElemSize));
 
 	// delete memory
 	::operator delete(PredParam);
@@ -538,26 +544,10 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 
 	// Check if any element of TargetArray satisfies Predicate
 	auto bIsAnySatisfy = std::any_of(
-	    begin, end, [&](const const_memory_transparent_reference& elem) {
-		    // check sizes
-		    check(ElemSize == elem.elem_prop.GetSize());
-
-		    // get raw pointer of elem
-		    const auto* const ptr_elem = elem.target_ptr;
-
-		    // copy data to PredParam
-		    std::memcpy(PredParam, ptr_elem, elem.elem_prop.GetSize());
-
-		    // call Predicate
-		    Predicate.GetOuter()->ProcessEvent(&Predicate, PredParam);
-
-		    // get the result of Predicate call
-		    bool PredicateResult = *reinterpret_cast<bool*>(
-		        static_cast<uint8*>(PredParam) + elem.elem_prop.GetSize());
-
-		    // return PredicateResult
-		    return PredicateResult;
-	    });
+	    begin, end,
+	    CreateLambdaToCallUFunction<bool,
+	                                const const_memory_transparent_reference&>(
+	        Predicate, PredParam, ElemSize));
 
 	// delete memory
 	::operator delete(PredParam);
@@ -621,34 +611,9 @@ void UUdonArrayUtilsLibrary::GenericSortAnyArray(
 	// sort the elements of TargetArray
 	std::sort(
 	    begin, end,
-	    [&](const memory_transparent_reference& a,
-	        const memory_transparent_reference& b) {
-		    // check sizes
-		    check(ElemSize == a.elem_prop.GetSize());
-		    check(ElemSize == b.elem_prop.GetSize());
-
-		    // get raw pointer of a
-		    const auto* const ptr_a = a.target_ptr;
-
-		    // get raw pointer of b
-		    const auto* const ptr_b = b.target_ptr;
-
-		    // copy data to ComparisonFunctionParam
-		    std::memcpy(ComparisonFunctionParam, ptr_a, ElemSize);
-		    std::memcpy(static_cast<uint8*>(ComparisonFunctionParam) + ElemSize,
-		                ptr_b, ElemSize);
-
-		    // call ComparisonFunction
-		    ComparisonFunction.GetOuter()->ProcessEvent(&ComparisonFunction,
-		                                                ComparisonFunctionParam);
-
-		    // get the result of ComparisonFunction call
-		    bool ComparisonResult = *reinterpret_cast<bool*>(
-		        static_cast<uint8*>(ComparisonFunctionParam) + ElemSize + ElemSize);
-
-		    // return ComparisonResult
-		    return ComparisonResult;
-	    });
+	    CreateLambdaToCallUFunction<bool, const_memory_transparent_reference&,
+	                                const_memory_transparent_reference&>(
+	        ComparisonFunction, ComparisonFunctionParam, ElemSize));
 
 	// delete memory
 	::operator delete(ComparisonFunctionParam);
