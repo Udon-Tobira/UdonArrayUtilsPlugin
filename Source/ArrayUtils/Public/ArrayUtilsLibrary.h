@@ -21,6 +21,23 @@ class ARRAYUTILS_API UUdonArrayUtilsLibrary: public UBlueprintFunctionLibrary {
 
 	// <algorithm>
 public:
+	/**
+	 * Searches for the first pair of adjacent elements that satisfy the
+	 * condition. Returns the index of the first element of such a pair.
+	 * @param TargetArray  target array
+	 * @param Object  An object for which the predicate is defined.
+	 * @param BinaryPredicateName
+	 *    The name of a binary predicate function that defines whether the pair of
+	 *    adjacent elements satisfies the condition. This must be a function that
+	 *    has two arguments of the same type as the array elements and returns a
+	 *    bool. If the pair is considered to meet your intended condition,
+	 *    return true; otherwise, return false.
+	 * @return
+	 *    Returns the index of the first element of the first pair of adjacent
+	 *    elements such that the function specified in BinaryPredicateName returns
+	 *    true. If not found, return the number of elements in the array
+	 *    (means out of index).
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
 	          meta = (CompactNodeTitle = "Adj. Find", DefaultToSelf = "Object",
