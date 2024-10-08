@@ -173,9 +173,16 @@ public:
 	// copy assignment operator
 	ScriptArrayHelperConstIterator&
 	    operator=(const ScriptArrayHelperConstIterator& other) noexcept {
+		auto old_index = index;
+
 		ArrayHelper     = other.ArrayHelper;
 		ElementProperty = other.ElementProperty;
 		index           = other.index;
+
+		// if index changed
+		if (old_index != index) {
+			need_to_rebuild_ref = true;
+		}
 
 		return *this;
 	}
@@ -183,13 +190,25 @@ public:
 public:
 	// dereference operator
 	[[nodiscard]] reference operator*() const noexcept {
-		return const_cast<ScriptArrayHelperConstIterator*>(this)->ref.emplace(
-		    ArrayHelper->GetRawPtr(index), *ElementProperty);
+		// if need to rebuild ref
+		if (need_to_rebuild_ref) {
+			// rebuild ref
+			const_cast<ScriptArrayHelperConstIterator*>(this)->ref.emplace(
+			    ArrayHelper->GetRawPtr(index), *ElementProperty);
+		}
+
+		// turn off need_to_rebuild_ref flag
+		const_cast<ScriptArrayHelperConstIterator*>(this)->need_to_rebuild_ref =
+		    false;
+
+		// return const_memory_transparent_reference
+		return ref.value();
 	}
 
 	// prefix increment operator
 	ScriptArrayHelperConstIterator& operator++() noexcept {
 		++index;
+		need_to_rebuild_ref = true;
 		return *this;
 	}
 
@@ -203,6 +222,7 @@ public:
 	// prefix decrement operator
 	ScriptArrayHelperConstIterator& operator--() noexcept {
 		--index;
+		need_to_rebuild_ref = true;
 		return *this;
 	}
 
@@ -217,6 +237,7 @@ public:
 	ScriptArrayHelperConstIterator&
 	    operator+=(const difference_type offset) noexcept {
 		index += offset;
+		need_to_rebuild_ref = true;
 		return *this;
 	}
 
@@ -296,12 +317,11 @@ public:
 	}
 
 protected:
-	FScriptArrayHelper* ArrayHelper;
-	const FProperty*    ElementProperty;
-	int32               index;
-
-private:
-	std::optional<value_type> ref;
+	FScriptArrayHelper*                         ArrayHelper;
+	const FProperty*                            ElementProperty;
+	int32                                       index;
+	std::optional<memory_transparent_reference> ref;
+	bool                                        need_to_rebuild_ref = true;
 };
 class ScriptArrayHelperIterator: public ScriptArrayHelperConstIterator {
 public:
