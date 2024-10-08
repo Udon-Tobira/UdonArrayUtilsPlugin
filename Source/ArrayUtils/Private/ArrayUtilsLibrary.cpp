@@ -73,6 +73,12 @@ public:
 	memory_transparent_reference(memory_transparent_reference&& other) noexcept
 	    : memory_transparent_reference(other) {}
 
+	// converting constructor from const_memory_transparent_reference
+	explicit memory_transparent_reference(
+	    const const_memory_transparent_reference& other)
+	    : memory_transparent_reference(const_cast<void*>(other.target_ptr),
+	                                   other.elem_prop) {}
+
 public:
 	// copy assignment operator
 	memory_transparent_reference&
