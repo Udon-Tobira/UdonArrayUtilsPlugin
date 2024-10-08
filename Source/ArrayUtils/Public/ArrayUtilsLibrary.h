@@ -39,7 +39,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
-	          meta = (CompactNodeTitle = "Adj. Find", DefaultToSelf = "Object",
+	          meta = (CompactNodeTitle = "Adj. FIND", DefaultToSelf = "Object",
 	                  ArrayParm = "TargetArray",
 	                  KeyWords  = "adjacent find predicate"))
 	static int32 AdjacentFind(const TArray<int32>& TargetArray, UObject* Object,
@@ -61,7 +61,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
-	          meta = (CompactNodeTitle = "All", DefaultToSelf = "Object",
+	          meta = (CompactNodeTitle = "ALL", DefaultToSelf = "Object",
 	                  ArrayParm = "TargetArray",
 	                  KeyWords  = "all of predicate condition"))
 	static bool AllSatisfy(const TArray<int32>& TargetArray, UObject* Object,
@@ -83,7 +83,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
-	          meta = (CompactNodeTitle = "Any", DefaultToSelf = "Object",
+	          meta = (CompactNodeTitle = "ANY", DefaultToSelf = "Object",
 	                  ArrayParm = "TargetArray",
 	                  KeyWords  = "any of predicate condition"))
 	static bool AnySatisfy(const TArray<int32>& TargetArray, UObject* Object,
@@ -97,7 +97,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
-	          meta = (CompactNodeTitle = "Count", ArrayParm = "TargetArray",
+	          meta = (CompactNodeTitle = "COUNT", ArrayParm = "TargetArray",
 	                  ArrayTypeDependentParams = "ItemToCount"))
 	static int32 Count(const TArray<int32>& TargetArray,
 	                   const int32&         ItemToCount);
