@@ -394,7 +394,7 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
 	// delete memory
 	::operator delete(PredParam);
 
-	return std::distance(begin, found_it);
+	return found_it < end ? std::distance(begin, found_it) : INDEX_NONE;
 }
 
 bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
