@@ -351,7 +351,7 @@ public:
 	// postfix increment operator
 	[[nodiscard]] ScriptArrayHelperIterator operator++(int) noexcept {
 		auto tmp = *this;
-		ScriptArrayHelperConstIterator::operator++();
+		++*this;
 		return tmp;
 	}
 
@@ -364,7 +364,7 @@ public:
 	// postfix decrement operator
 	[[nodiscard]] ScriptArrayHelperIterator operator--(int) noexcept {
 		auto tmp = *this;
-		ScriptArrayHelperConstIterator::operator--();
+		--*this;
 		return tmp;
 	}
 
