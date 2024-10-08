@@ -149,28 +149,28 @@ public:
 public:
 	// default constructor
 	ScriptArrayHelperConstIterator() noexcept
-	    : ArrayHelper(nullptr), ElemProp(nullptr), index() {}
+	    : ArrayHelper(nullptr), ElementProperty(nullptr), index() {}
 
 	// constructor
 	ScriptArrayHelperConstIterator(FScriptArrayHelper&    InArrayHelper,
 	                               const FProperty* const InElementProperty,
 	                               const int32            in_index) noexcept
-	    : ArrayHelper(&InArrayHelper), ElemProp(InElementProperty),
+	    : ArrayHelper(&InArrayHelper), ElementProperty(InElementProperty),
 	      index(in_index) {}
 
 	// copy constructor
 	ScriptArrayHelperConstIterator(
 	    const ScriptArrayHelperConstIterator& other) noexcept
-	    : ArrayHelper(other.ArrayHelper), ElemProp(other.ElemProp),
+	    : ArrayHelper(other.ArrayHelper), ElementProperty(other.ElementProperty),
 	      index(other.index) {}
 
 public:
 	// copy assignment operator
 	ScriptArrayHelperConstIterator&
 	    operator=(const ScriptArrayHelperConstIterator& other) noexcept {
-		ArrayHelper = other.ArrayHelper;
-		ElemProp    = other.ElemProp;
-		index       = other.index;
+		ArrayHelper     = other.ArrayHelper;
+		ElementProperty = other.ElementProperty;
+		index           = other.index;
 
 		return *this;
 	}
@@ -179,7 +179,7 @@ public:
 	// dereference operator
 	[[nodiscard]] reference operator*() const noexcept {
 		return const_cast<ScriptArrayHelperConstIterator*>(this)->ref.emplace(
-		    ArrayHelper->GetRawPtr(index), *ElemProp);
+		    ArrayHelper->GetRawPtr(index), *ElementProperty);
 	}
 
 	// prefix increment operator
@@ -292,7 +292,7 @@ public:
 
 protected:
 	FScriptArrayHelper* ArrayHelper;
-	const FProperty*    ElemProp;
+	const FProperty*    ElementProperty;
 	int32               index;
 
 private:
@@ -314,7 +314,7 @@ public:
 	// dereference operator
 	[[nodiscard]] reference operator*() const noexcept {
 		return const_cast<ScriptArrayHelperIterator*>(this)->ref.emplace(
-		    ArrayHelper->GetRawPtr(index), *ElemProp);
+		    ArrayHelper->GetRawPtr(index), *ElementProperty);
 	}
 
 	// prefix increment operator
@@ -476,26 +476,33 @@ static constexpr auto CreateLambdaToCallUFunction(UFunction&  Predicate,
 }
 } // namespace udon
 
+#define PROCESS_ARRAY_ARGUMENTS()                                              \
+	using namespace udon;                                                        \
+                                                                               \
+	/* helper to allow access to the actual array 	*/                            \
+	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);                 \
+                                                                               \
+	/* get length of the array			*/                                              \
+	const auto& NumArray = ArrayHelper.Num();                                    \
+                                                                               \
+	/* get property of the element	*/                                            \
+	const auto* const ElementProperty = ArrayProperty.Inner;                     \
+                                                                               \
+	/* get the size of one element */                                            \
+	const auto& ElementSize = ElementProperty->ElementSize;                      \
+                                                                               \
+	/* create the begin and end const iterators of the TargetArray */            \
+	auto cbegin_it = cbegin(ArrayHelper, ElementProperty);                       \
+	auto cend_it   = cend(ArrayHelper, ElementProperty);                         \
+                                                                               \
+	/* create the begin and end iterators of the TargetArray */                  \
+	auto begin_it = begin(ArrayHelper, ElementProperty);                         \
+	auto end_it   = end(ArrayHelper, ElementProperty);
+
 int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& BinaryPredicate) {
-	using namespace udon;
-
-	// helper to allow access to the actual array
-	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
-
-	// get length of the array
-	const auto& NumArray = ArrayHelper.Num();
-
-	// get property of the element
-	const auto* const ElemProp = ArrayProperty.Inner;
-
-	// get the size of one element
-	const auto& ElemSize = ElemProp->ElementSize;
-
-	// create the begin and end iterators of the TargetArray
-	auto cbegin_it = cbegin(ArrayHelper, ElemProp);
-	auto cend_it   = cend(ArrayHelper, ElemProp);
+	PROCESS_ARRAY_ARGUMENTS();
 
 	// Find the first iterator that satisfy BinaryPredicate
 	auto found_it = std::adjacent_find(
@@ -503,7 +510,7 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&,
 	                                const const_memory_transparent_reference&>(
-	        BinaryPredicate, ElemSize));
+	        BinaryPredicate, ElementSize));
 
 	return found_it < cend_it ? std::distance(cbegin_it, found_it) : INDEX_NONE;
 }
@@ -511,30 +518,14 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
 bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
-	using namespace udon;
-
-	// helper to allow access to the actual array
-	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
-
-	// get length of the array
-	const auto& NumArray = ArrayHelper.Num();
-
-	// get property of the element
-	const auto* const ElemProp = ArrayProperty.Inner;
-
-	// get the size of one element
-	const auto& ElemSize = ElemProp->ElementSize;
-
-	// create the begin and end iterators of the TargetArray
-	auto cbegin_it = cbegin(ArrayHelper, ElemProp);
-	auto cend_it   = cend(ArrayHelper, ElemProp);
+	PROCESS_ARRAY_ARGUMENTS();
 
 	// Check if all elements of TargetArray satisfy Predicate
 	auto bIsAllSatisfy = std::all_of(
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
-	        Predicate, ElemSize));
+	        Predicate, ElementSize));
 
 	return bIsAllSatisfy;
 }
@@ -542,30 +533,14 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
-	using namespace udon;
-
-	// helper to allow access to the actual array
-	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
-
-	// get length of the array
-	const auto& NumArray = ArrayHelper.Num();
-
-	// get property of the element
-	const auto* const ElemProp = ArrayProperty.Inner;
-
-	// get the size of one element
-	const auto& ElemSize = ElemProp->ElementSize;
-
-	// create the begin and end iterators of the TargetArray
-	auto cbegin_it = cbegin(ArrayHelper, ElemProp);
-	auto cend_it   = cend(ArrayHelper, ElemProp);
+	PROCESS_ARRAY_ARGUMENTS();
 
 	// Check if any element of TargetArray satisfies Predicate
 	auto bIsAnySatisfy = std::any_of(
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
-	        Predicate, ElemSize));
+	        Predicate, ElementSize));
 
 	return bIsAnySatisfy;
 }
@@ -573,56 +548,25 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 int32 UUdonArrayUtilsLibrary::GenericCount(const void* const     TargetArray,
                                            const FArrayProperty& ArrayProperty,
                                            const void* const     ItemToCount) {
-	using namespace udon;
-
-	// helper to allow access to the actual array
-	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
-
-	// get length of the array
-	const auto& NumArray = ArrayHelper.Num();
-
-	// get property of the element
-	const auto* const ElemProp = ArrayProperty.Inner;
-
-	// get the size of one element
-	const auto& ElemSize = ElemProp->ElementSize;
-
-	// create the begin and end iterators of the TargetArray
-	auto cbegin_it = cbegin(ArrayHelper, ElemProp);
-	auto cend_it   = cend(ArrayHelper, ElemProp);
+	PROCESS_ARRAY_ARGUMENTS();
 
 	// Count the number of elements matching ItemToCount
-	return std::count(cbegin_it, cend_it,
-	                  const_memory_transparent_reference(ItemToCount, *ElemProp));
+	return std::count(
+	    cbegin_it, cend_it,
+	    const_memory_transparent_reference(ItemToCount, *ElementProperty));
 }
 
 int32 UUdonArrayUtilsLibrary::GenericCountIf(
     const void* TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
-	using namespace udon;
-
-	// helper to allow access to the actual array
-	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
-
-	// get length of the array
-	const auto& NumArray = ArrayHelper.Num();
-
-	// get property of the element
-	const auto* const ElemProp = ArrayProperty.Inner;
-
-	// get the size of one element
-	const auto& ElemSize = ElemProp->ElementSize;
-
-	// create the begin and end iterators of the TargetArray
-	auto cbegin_it = cbegin(ArrayHelper, ElemProp);
-	auto cend_it   = cend(ArrayHelper, ElemProp);
+	PROCESS_ARRAY_ARGUMENTS();
 
 	// Check if any element of TargetArray satisfies Predicate
 	auto bCount = std::count_if(
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
-	        Predicate, ElemSize));
+	        Predicate, ElementSize));
 
 	return bCount;
 }
@@ -630,23 +574,7 @@ int32 UUdonArrayUtilsLibrary::GenericCountIf(
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(
     void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
-	using namespace udon;
-
-	// helper to allow manipulation of the actual array
-	FScriptArrayHelper ArrayHelper(&ArrayProperty, TargetArray);
-
-	// get length of the array
-	const auto& NumArray = ArrayHelper.Num();
-
-	// get property of the element
-	const auto* const ElemProp = ArrayProperty.Inner;
-
-	// get the size of one element
-	const auto& ElemSize = ElemProp->ElementSize;
-
-	// create the begin and end iterators of the TargetArray
-	auto begin_it = begin(ArrayHelper, ElemProp);
-	auto end_it   = end(ArrayHelper, ElemProp);
+	PROCESS_ARRAY_ARGUMENTS();
 
 	// sort the elements of TargetArray
 	std::sort(
@@ -654,5 +582,7 @@ void UUdonArrayUtilsLibrary::GenericSortAnyArray(
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&,
 	                                const const_memory_transparent_reference&>(
-	        ComparisonFunction, ElemSize));
+	        ComparisonFunction, ElementSize));
 }
+
+#undef PROCESS_ARRAY_ARGUMENTS
