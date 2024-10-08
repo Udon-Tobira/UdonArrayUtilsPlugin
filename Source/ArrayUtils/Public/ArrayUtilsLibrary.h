@@ -97,8 +97,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
-	          meta = (CompactNodeTitle = "Count", DefaultToSelf = "Object",
-	                  ArrayParm                = "TargetArray",
+	          meta = (CompactNodeTitle = "Count", ArrayParm = "TargetArray",
 	                  ArrayTypeDependentParams = "ItemToCount"))
 	static int32 Count(const TArray<int32>& TargetArray,
 	                   const int32&         ItemToCount);
