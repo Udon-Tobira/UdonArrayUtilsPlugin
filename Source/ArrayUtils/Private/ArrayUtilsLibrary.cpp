@@ -21,8 +21,8 @@ public:
 
 public:
 	// equal operator
-	[[nodiscard]] bool operator==(
-	    const const_memory_transparent_reference& other) const noexcept {
+	[[nodiscard]] bool
+	    operator==(const const_memory_transparent_reference& other) const {
 		// if properties are different
 		if (!elem_prop.SameType(&other.elem_prop)) {
 			// return false
@@ -34,8 +34,8 @@ public:
 	}
 
 	// not equal operator
-	[[nodiscard]] bool operator!=(
-	    const const_memory_transparent_reference& other) const noexcept {
+	[[nodiscard]] bool
+	    operator!=(const const_memory_transparent_reference& other) const {
 		return !(*this == other);
 	}
 
@@ -58,8 +58,7 @@ public:
 	      new_target_ptr(nullptr) {}
 
 	// copy constructor
-	memory_transparent_reference(
-	    const memory_transparent_reference& other) noexcept
+	memory_transparent_reference(const memory_transparent_reference& other)
 	    : const_memory_transparent_reference(
 	          new_target_ptr = ::operator new(other.elem_prop.GetSize()),
 	          other.elem_prop) {
