@@ -360,7 +360,7 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
 	auto begin = ScriptArrayHelperConstIterator(ArrayHelper, ElemSize, 0);
 	auto end   = ScriptArrayHelperConstIterator(ArrayHelper, ElemSize, NumArray);
 
-	// Check if all elements of TargetArray satisfy Predicate
+	// Find the first iterator that satisfy BinaryPredicate
 	auto found_it = std::adjacent_find(
 	    begin, end,
 	    [&](const memory_transparent_reference& current,
