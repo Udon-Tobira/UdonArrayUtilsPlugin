@@ -125,8 +125,8 @@ public:
 	 *    element is considered to meet your intended condition, return true;
 	 *    otherwise, return false.
 	 * @return
-	 *    If the function specified in PredicateName for all elements returns
-	 *    true, this function returns true; otherwise, returns false.
+	 *    If Predicate for all elements returns true, this function returns true;
+	 *    otherwise, returns false.
 	 */
 	static bool GenericAllSatisfy(const void*           TargetArray,
 	                              const FArrayProperty& ArrayProperty,
@@ -143,8 +143,8 @@ public:
 	 *    element is considered to meet your intended condition, return true;
 	 *    otherwise, return false.
 	 * @return
-	 *    If the function specified in PredicateName for any element returns
-	 *    true, this function returns true; otherwise, returns false.
+	 *    If Predicate for any element returns true, this function returns true;
+	 *    otherwise, returns false.
 	 */
 	static bool GenericAnySatisfy(const void*           TargetArray,
 	                              const FArrayProperty& ArrayProperty,
