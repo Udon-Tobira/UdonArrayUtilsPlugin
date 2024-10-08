@@ -404,7 +404,7 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
 	const auto& NumArray = ArrayHelper.Num();
 
 	// get property of the element
-	FProperty* ElemProp = ArrayProperty.Inner;
+	const auto* const ElemProp = ArrayProperty.Inner;
 
 	// get the size of one element
 	const auto& ElemSize = ElemProp->ElementSize;
@@ -467,7 +467,7 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 	const auto& NumArray = ArrayHelper.Num();
 
 	// get property of the element
-	FProperty* ElemProp = ArrayProperty.Inner;
+	const auto* const ElemProp = ArrayProperty.Inner;
 
 	// get the size of one element
 	const auto& ElemSize = ElemProp->ElementSize;
@@ -522,7 +522,7 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 	const auto& NumArray = ArrayHelper.Num();
 
 	// get property of the element
-	FProperty* ElemProp = ArrayProperty.Inner;
+	const auto* const ElemProp = ArrayProperty.Inner;
 
 	// get the size of one element
 	const auto& ElemSize = ElemProp->ElementSize;
@@ -577,7 +577,7 @@ void UUdonArrayUtilsLibrary::GenericSortAnyArray(
 	const auto& NumArray = ArrayHelper.Num();
 
 	// get property of the element
-	FProperty* ElemProp = ArrayProperty.Inner;
+	const auto* const ElemProp = ArrayProperty.Inner;
 
 	// get the size of one element
 	const auto& ElemSize = ElemProp->ElementSize;
