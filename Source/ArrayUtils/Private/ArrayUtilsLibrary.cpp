@@ -625,6 +625,26 @@ int32 UUdonArrayUtilsLibrary::GenericCountIf(
 	return bCount;
 }
 
+void UUdonArrayUtilsLibrary::GenericFill(void*                 TargetArray,
+                                         const FArrayProperty& ArrayProperty,
+                                         const void*           Value) {
+	PROCESS_ARRAY_ARGUMENTS();
+
+	// Fill the all elements of TargetArray with Value
+	std::fill(begin_it, end_it, Value);
+}
+
+void UUdonArrayUtilsLibrary::GenericFill(void* const           TargetArray,
+                                         const FArrayProperty& ArrayProperty,
+                                         const int32           StartIndex,
+                                         const int32           EndIndex,
+                                         const void* const     Value) {
+	PROCESS_ARRAY_ARGUMENTS();
+
+	// Fill the elements of TargetArray with Value
+	std::fill(begin_it + StartIndex, begin_it + EndIndex, Value);
+}
+
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(
     void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {

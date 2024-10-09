@@ -125,6 +125,32 @@ public:
 	                     const FName& PredicateName);
 
 	/**
+	 * Overwrites the entire array with Value.
+	 * @param TargetArray  target array
+	 * @param Value  the value to be written to the entire array
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Utilities|Array", CustomThunk,
+	          meta = (CompactNodeTitle = "FILL", ArrayParm = "TargetArray",
+	                  ArrayTypeDependentParams = "Value",
+	                  KeyWords                 = "fill set all"))
+	static void Fill(UPARAM(ref) TArray<int32>& TargetArray, const int32& Value);
+
+	/**
+	 * Overwrites the range [StartIndex, EndIndex) of the array with Value.
+	 * @param TargetArray  target array
+	 * @param StartIndex  the index of the first element to be overwritten.
+	 * @param EndIndex  the index of the next element after the last overwritten
+	 *                  element
+	 * @param Value  the value to be written to the range
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Utilities|Array", CustomThunk,
+	          meta = (ArrayParm                = "TargetArray",
+	                  ArrayTypeDependentParams = "Value",
+	                  KeyWords                 = "fill set range"))
+	static void FillRange(UPARAM(ref) TArray<int32>& TargetArray,
+	                      int32 StartIndex, int32 EndIndex, const int32& Value);
+
+	/**
 	 * Sort an array of any type according to the order of the specified
 	 * comparison function.
 	 * @param TargetArray  sort target array
@@ -228,6 +254,29 @@ public:
 	static int32 GenericCountIf(const void*           TargetArray,
 	                            const FArrayProperty& ArrayProperty,
 	                            UFunction&            Predicate);
+
+	/**
+	 * Overwrites the entire array with Value.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param Value  the value to be written to the entire array
+	 */
+	static void GenericFill(void*                 TargetArray,
+	                        const FArrayProperty& ArrayProperty,
+	                        const void*           Value);
+
+	/**
+	 * Overwrites the range [StartIndex, EndIndex) of the array with Value.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param StartIndex  the index of the first element to be overwritten.
+	 * @param EndIndex  the index of the next element after the last overwritten
+	 *                  element
+	 * @param Value  the value to be written to the range
+	 */
+	static void GenericFill(void*                 TargetArray,
+	                        const FArrayProperty& ArrayProperty, int32 StartIndex,
+	                        int32 EndIndex, const void* Value);
 
 	/**
 	 * Sort an array according to the order of the specified comparison function.
@@ -558,6 +607,131 @@ public:
 
 		// end of native processing
 		P_NATIVE_END;
+	}
+
+	DECLARE_FUNCTION(execFill) {
+		{
+			///////////////////////////////////
+			// read argument 0 (TargetArray) //
+			///////////////////////////////////
+
+			// reset MostRecentProperty
+			Stack.MostRecentProperty = nullptr;
+
+			// read an array from Stack
+			Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+			// get pointer to read array
+			void* const TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+			// get property of read array
+			FArrayProperty* TargetArrayProperty =
+			    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+			// if failed to read an array
+			if (!TargetArrayProperty) {
+				// notify that failed
+				Stack.bArrayContextFailed = true;
+
+				// finish
+				return;
+			}
+
+			/////////////////////////////
+			// read argument 1 (Value) //
+			/////////////////////////////
+			// Since Value isn't really an int, step the stack manually
+
+			// reset MostRecentPropertyAddress
+			Stack.MostRecentPropertyAddress = nullptr;
+
+			// read a value from Stack
+			Stack.StepCompiledIn<FProperty>(nullptr);
+
+			// get pointer to read value
+			const auto* const Value = Stack.MostRecentPropertyAddress;
+
+			// end of reading arguments
+			P_FINISH;
+
+			// beginning of native processing
+			P_NATIVE_BEGIN;
+
+			// Perform fill
+			MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+			GenericFill(TargetArrayAddr, *TargetArrayProperty, Value);
+
+			// end of native processing
+			P_NATIVE_END;
+		}
+	}
+
+	DECLARE_FUNCTION(execFillRange) {
+		{
+			///////////////////////////////////
+			// read argument 0 (TargetArray) //
+			///////////////////////////////////
+
+			// reset MostRecentProperty
+			Stack.MostRecentProperty = nullptr;
+
+			// read an array from Stack
+			Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+			// get pointer to read array
+			void* const TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+			// get property of read array
+			FArrayProperty* TargetArrayProperty =
+			    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+			// if failed to read an array
+			if (!TargetArrayProperty) {
+				// notify that failed
+				Stack.bArrayContextFailed = true;
+
+				// finish
+				return;
+			}
+
+			//////////////////////////////////
+			// read argument 1 (StartIndex) //
+			//////////////////////////////////
+			P_GET_PROPERTY(FIntProperty, StartIndex);
+
+			////////////////////////////////
+			// read argument 2 (EndIndex) //
+			////////////////////////////////
+			P_GET_PROPERTY(FIntProperty, EndIndex);
+
+			/////////////////////////////
+			// read argument 3 (Value) //
+			/////////////////////////////
+			// Since Value isn't really an int, step the stack manually
+
+			// reset MostRecentPropertyAddress
+			Stack.MostRecentPropertyAddress = nullptr;
+
+			// read a value from Stack
+			Stack.StepCompiledIn<FProperty>(nullptr);
+
+			// get pointer to read value
+			const auto* const Value = Stack.MostRecentPropertyAddress;
+
+			// end of reading arguments
+			P_FINISH;
+
+			// beginning of native processing
+			P_NATIVE_BEGIN;
+
+			// Perform fill
+			MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+			GenericFill(TargetArrayAddr, *TargetArrayProperty, StartIndex, EndIndex,
+			            Value);
+
+			// end of native processing
+			P_NATIVE_END;
+		}
 	}
 
 	DECLARE_FUNCTION(execSortAnyArray) {
