@@ -302,6 +302,19 @@ public:
 	                        const FName& PredicateName);
 
 	/**
+	 * Removes the elements in the range [StartIndex, EndIndex) from the target
+	 * array.
+	 * @param TargetArray  target array
+	 * @param StartIndex   the index of the first element to remove
+	 * @param EndIndex     the next index of the last element to remove
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Utilities|Array", CustomThunk,
+	          meta = (ArrayParm = "TargetArray",
+	                  KeyWords  = "remove delete erase range between"))
+	static void RemoveRange(UPARAM(ref) TArray<int32>& TargetArray,
+	                        int32 StartIndex, int32 EndIndex);
+
+	/**
 	 * Sort an array of any type according to the order of the specified
 	 * comparison function.
 	 * @param TargetArray  sort target array
@@ -533,6 +546,18 @@ public:
 	static bool GenericNoneSatisfy(const void*           TargetArray,
 	                               const FArrayProperty& ArrayProperty,
 	                               UFunction&            Predicate);
+
+	/**
+	 * Removes the elements in the range [StartIndex, EndIndex) from the target
+	 * array.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param StartIndex   the index of the first element to remove
+	 * @param EndIndex     the next index of the last element to remove
+	 */
+	static void GenericRemoveRange(void*                 TargetArray,
+	                               const FArrayProperty& ArrayProperty,
+	                               int32 StartIndex, int32 EndIndex);
 
 	/**
 	 * Sort an array according to the order of the specified comparison function.
@@ -1421,6 +1446,58 @@ public:
 		// Perform the none_of
 		*static_cast<bool*>(RESULT_PARAM) =
 		    GenericNoneSatisfy(TargetArrayAddr, *TargetArrayProperty, *Predicate);
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
+	DECLARE_FUNCTION(execRemoveRange) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// get pointer to read array
+		void* const TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		//////////////////////////////////
+		// read argument 1 (StartIndex) //
+		//////////////////////////////////
+		P_GET_PROPERTY(FIntProperty, StartIndex);
+
+		////////////////////////////////
+		// read argument 2 (EndIndex) //
+		////////////////////////////////
+		P_GET_PROPERTY(FIntProperty, EndIndex);
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// Perform remove range
+		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+		GenericRemoveRange(TargetArrayAddr, *TargetArrayProperty, StartIndex,
+		                   EndIndex);
 
 		// end of native processing
 		P_NATIVE_END;

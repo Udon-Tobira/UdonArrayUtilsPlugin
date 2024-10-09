@@ -690,6 +690,24 @@ bool UUdonArrayUtilsLibrary::GenericNoneSatisfy(
 	return !GenericAnySatisfy(TargetArray, ArrayProperty, Predicate);
 }
 
+void UUdonArrayUtilsLibrary::GenericRemoveRange(
+    void* TargetArray, const FArrayProperty& ArrayProperty, int32 StartIndex,
+    int32 EndIndex) {
+	PROCESS_ARRAY_ARGUMENTS();
+
+	// get number of elements to remove
+	const auto& NumToRemove = EndIndex - StartIndex;
+
+	// if there is nothing to remove
+	if (NumToRemove == 0) {
+		// finish
+		return;
+	}
+
+	// remove elements in the range [StartIndex, EndIndex)
+	ArrayHelper.RemoveValues(StartIndex, NumToRemove);
+}
+
 int32 UUdonArrayUtilsLibrary::GenericMaxElementIndex(
     const void* TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
