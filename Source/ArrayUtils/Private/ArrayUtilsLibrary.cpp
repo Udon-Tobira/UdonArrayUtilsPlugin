@@ -501,6 +501,10 @@ static constexpr auto CreateLambdaToCallUFunction(UFunction&  Predicate,
 }
 } // namespace udon
 
+/**
+ * Get ArrayHelper, NumArray, ElementProperty, ElementSize, cbegin_it,
+ * cend_it, begin_it, end_it.
+ */
 #define PROCESS_ARRAY_ARGUMENTS()                                              \
 	using namespace udon;                                                        \
                                                                                \
