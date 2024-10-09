@@ -201,29 +201,6 @@ public:
 	                /*out*/ int32& MaxValue);
 
 	/**
-	 * Checks whether none elements of the array satisfy the specified predicate.
-	 * @param TargetArray  target array
-	 * @param Object  An object for which the predicate is defined.
-	 * @param PredicateName
-	 *    The name of a unary predicate function that defines whether the element
-	 *    satisfies the condition. This must be a function that has one argument
-	 *    of the same type as the array elements and returns a bool. If the
-	 *    element is considered to meet your intended condition, return true;
-	 *    otherwise, return false.
-	 * @return
-	 *    If the function specified in PredicateName for any element returns
-	 *    true, this function returns false; otherwise, returns true.
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
-	          CustomThunk,
-	          meta = (CompactNodeTitle = "NONE", DefaultToSelf = "Object",
-	                  ArrayParm         = "TargetArray",
-	                  AutoCreateRefTerm = "PredicateName",
-	                  KeyWords          = "none of predicate condition"))
-	static bool NoneSatisfy(const TArray<int32>& TargetArray, UObject* Object,
-	                        const FName& PredicateName);
-
-	/**
 	 * Searches for the index of the maximum element in the array using a custom
 	 * comparison function.
 	 * @param TargetArray  The target array to search.
@@ -300,6 +277,29 @@ public:
 	static int32 MinElementIndex(const TArray<int32>& TargetArray,
 	                             UObject*             Object,
 	                             const FName&         ComparisonFunctionName);
+
+	/**
+	 * Checks whether none elements of the array satisfy the specified predicate.
+	 * @param TargetArray  target array
+	 * @param Object  An object for which the predicate is defined.
+	 * @param PredicateName
+	 *    The name of a unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 * @return
+	 *    If the function specified in PredicateName for any element returns
+	 *    true, this function returns false; otherwise, returns true.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
+	          CustomThunk,
+	          meta = (CompactNodeTitle = "NONE", DefaultToSelf = "Object",
+	                  ArrayParm         = "TargetArray",
+	                  AutoCreateRefTerm = "PredicateName",
+	                  KeyWords          = "none of predicate condition"))
+	static bool NoneSatisfy(const TArray<int32>& TargetArray, UObject* Object,
+	                        const FName& PredicateName);
 
 	/**
 	 * Sort an array of any type according to the order of the specified
