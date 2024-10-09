@@ -83,6 +83,13 @@ public:
 	// copy assignment operator
 	memory_transparent_reference&
 	    operator=(const memory_transparent_reference& other) {
+		return *this =
+		           static_cast<const const_memory_transparent_reference&>(other);
+	}
+
+	// copy assignment from const_memory_transparent_reference
+	memory_transparent_reference&
+	    operator=(const const_memory_transparent_reference& other) {
 		// if properties are different
 		if (!elem_prop.SameType(&other.elem_prop)) {
 			// throw exception
