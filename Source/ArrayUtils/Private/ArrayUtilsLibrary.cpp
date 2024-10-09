@@ -571,7 +571,7 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Find the first iterator that satisfy BinaryPredicate
-	auto found_it = std::adjacent_find(
+	const auto found_it = std::adjacent_find(
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&,
@@ -587,7 +587,7 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Check if all elements of TargetArray satisfy Predicate
-	auto bIsAllSatisfy = std::all_of(
+	const auto bIsAllSatisfy = std::all_of(
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
@@ -602,7 +602,7 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Check if any element of TargetArray satisfies Predicate
-	auto bIsAnySatisfy = std::any_of(
+	const auto bIsAnySatisfy = std::any_of(
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
@@ -626,7 +626,7 @@ int32 UUdonArrayUtilsLibrary::GenericCountIf(
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Check if any element of TargetArray satisfies Predicate
-	auto bCount = std::count_if(
+	const auto bCount = std::count_if(
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
@@ -661,7 +661,7 @@ int32 UUdonArrayUtilsLibrary::GenericFindIf(const void*           TargetArray,
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Find the first iterator that satisfies Predicate
-	auto found_it = std::find_if(
+	const auto found_it = std::find_if(
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
