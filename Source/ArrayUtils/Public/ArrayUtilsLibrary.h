@@ -229,6 +229,56 @@ public:
 	                             const FName&         ComparisonFunctionName);
 
 	/**
+	 * Finds the minimum element in the array using a comparison function.
+	 * @param TargetArray  target array
+	 * @param Object  An object for which the comparison function is defined.
+	 * @param ComparisonFunctionName
+	 *    The Name of a comparison function that determines which of two elements
+	 *    is greater. You should return true if the first argument is less than
+	 *    the second; otherwise, return false.
+	 * @return  The minimum element in the array. If the array is empty, returns
+	 *          the default value of the element type.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
+	          CustomThunk,
+	          meta = (CompactNodeTitle = "MIN", DefaultToSelf = "Object",
+	                  ArrayParm                = "TargetArray",
+	                  ArrayTypeDependentParams = "MinValue",
+	                  AutoCreateRefTerm        = "ComparisonFunctionName",
+	                  KeyWords = "min minimum predicate compare comparison"))
+	static void Min(const TArray<int32>& TargetArray, UObject* Object,
+	                const FName&   ComparisonFunctionName,
+	                /*out*/ int32& MinValue);
+
+	/**
+	 * Searches for the index of the minimum element in the array using a custom
+	 * comparison function.
+	 * @param TargetArray  The target array to search.
+	 * @param Object  An object for which the comparison function is defined.
+	 * @param ComparisonFunctionName
+	 *    The name of a binary comparison function
+	 *    that defines the order of elements. This function must have two
+	 *    arguments of the same type as the array elements and return a bool. If
+	 *    the first element is considered to be less than the second element,
+	 *    return true; otherwise, return false.
+	 * @return
+	 *    The index of the minimum element in the array. If the array is
+	 *    empty, returns INDEX_NONE.
+	 */
+	UFUNCTION(
+	    BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
+	    CustomThunk,
+	    meta =
+	        (CompactNodeTitle = "MIN Elem. INDEX", DefaultToSelf = "Object",
+	         ArrayParm         = "TargetArray",
+	         AutoCreateRefTerm = "ComparisonFunctionName",
+	         KeyWords =
+	             "min minimum elem element index predicate compare comparison"))
+	static int32 MinElementIndex(const TArray<int32>& TargetArray,
+	                             UObject*             Object,
+	                             const FName&         ComparisonFunctionName);
+
+	/**
 	 * Sort an array of any type according to the order of the specified
 	 * comparison function.
 	 * @param TargetArray  sort target array
@@ -407,6 +457,39 @@ public:
 	 *    empty, returns INDEX_NONE.
 	 */
 	static int32 GenericMaxElementIndex(const void*           TargetArray,
+	                                    const FArrayProperty& ArrayProperty,
+	                                    UFunction&            ComparisonFunction);
+
+	/**
+	 * Finds the minimum element in the array using a comparison function.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param ComparisonFunction
+	 *    A comparison function that determines which of two elements is greater.
+	 *    You should return true if the first argument is less than the second;
+	 *    otherwise, return false.
+	 * @return  The pointer to the minimum element in the array. If the array is
+	 *          empty, returns nullptr.
+	 */
+	static const void* GenericMin(const void*           TargetArray,
+	                              const FArrayProperty& ArrayProperty,
+	                              UFunction&            ComparisonFunction);
+
+	/**
+	 * Searches for the index of the minimum element in the array using a custom
+	 * comparison function.
+	 * @param TargetArray  The target array to search.
+	 * @param ArrayProperty  property of TargetArray
+	 * @param ComparisonFunction
+	 *    A binary comparison function that defines the order of elements. This
+	 *    function must have two arguments of the same type as the array elements
+	 *    and return a bool. If the first element is considered to be less than
+	 *    the second element, return true; otherwise, return false.
+	 * @return
+	 *    The index of the minimum element in the array. If the array is
+	 *    empty, returns INDEX_NONE.
+	 */
+	static int32 GenericMinElementIndex(const void*           TargetArray,
 	                                    const FArrayProperty& ArrayProperty,
 	                                    UFunction&            ComparisonFunction);
 
@@ -1076,6 +1159,161 @@ public:
 
 		// get max
 		*static_cast<int32*>(RESULT_PARAM) = GenericMaxElementIndex(
+		    TargetArrayAddr, *TargetArrayProperty, *ComparisonFunction);
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
+	DECLARE_FUNCTION(execMin) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// get pointer to read array
+		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		//////////////////////////////
+		// read argument 1 (Object) //
+		//////////////////////////////
+		P_GET_PROPERTY(FObjectProperty, Object);
+
+		//////////////////////////////////////////////
+		// read argument 2 (ComparisonFunctionName) //
+		//////////////////////////////////////////////
+		P_GET_PROPERTY(FNameProperty, ComparisonFunctionName);
+
+		////////////////////////////////
+		// read argument 3 (MinValue) //
+		////////////////////////////////
+		// Since MinValue isn't really an int, step the stack manually
+
+		// reset MostRecentPropertyAddress
+		Stack.MostRecentPropertyAddress = nullptr;
+
+		// read a value from Stack
+		Stack.StepCompiledIn<FProperty>(nullptr);
+
+		// get pointer to min value ref
+		auto* const OutMinValue = Stack.MostRecentPropertyAddress;
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// get ComparisonFunction on Object
+		const auto& ComparisonFunction =
+		    Object->FindFunction(ComparisonFunctionName);
+
+		// if ComparisonFunction doesn't exist
+		if (!ComparisonFunction) {
+			// output error
+			UE_LOG(LogUdonArrayUtilsLibrary, Error,
+			       TEXT("ComparisonFunction '%s' not found on object: %s"),
+			       *ComparisonFunctionName.ToString(), *Object->GetName());
+
+			// finish
+			return;
+		}
+
+		// get min
+		const auto* const MinElementPtr =
+		    GenericMin(TargetArrayAddr, *TargetArrayProperty, *ComparisonFunction);
+
+		// if min element exists (i.e. array is not empty)
+		if (MinElementPtr) {
+			// get element property
+			const auto& ElementProperty = TargetArrayProperty->Inner;
+
+			// copy the result to the MinValue pin
+			ElementProperty->CopySingleValueToScriptVM(OutMinValue, MinElementPtr);
+		}
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
+	DECLARE_FUNCTION(execMinElementIndex) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// get pointer to read array
+		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		//////////////////////////////
+		// read argument 1 (Object) //
+		//////////////////////////////
+		P_GET_PROPERTY(FObjectProperty, Object);
+
+		//////////////////////////////////////////////
+		// read argument 2 (ComparisonFunctionName) //
+		//////////////////////////////////////////////
+		P_GET_PROPERTY(FNameProperty, ComparisonFunctionName);
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// get ComparisonFunction on Object
+		const auto& ComparisonFunction =
+		    Object->FindFunction(ComparisonFunctionName);
+
+		// if ComparisonFunction doesn't exist
+		if (!ComparisonFunction) {
+			// output error
+			UE_LOG(LogUdonArrayUtilsLibrary, Error,
+			       TEXT("ComparisonFunction '%s' not found on object: %s"),
+			       *ComparisonFunctionName.ToString(), *Object->GetName());
+
+			// finish
+			return;
+		}
+
+		// get min
+		*static_cast<int32*>(RESULT_PARAM) = GenericMinElementIndex(
 		    TargetArrayAddr, *TargetArrayProperty, *ComparisonFunction);
 
 		// end of native processing
