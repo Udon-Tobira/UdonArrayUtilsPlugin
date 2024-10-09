@@ -586,7 +586,7 @@ int32 UUdonArrayUtilsLibrary::GenericCount(const void* const     TargetArray,
 }
 
 int32 UUdonArrayUtilsLibrary::GenericCountIf(
-    const void* TargetArray, const FArrayProperty& ArrayProperty,
+    const void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
 	PROCESS_ARRAY_ARGUMENTS();
 
