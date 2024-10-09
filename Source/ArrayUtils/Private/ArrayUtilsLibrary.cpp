@@ -684,6 +684,12 @@ const void*
 	                                    : ArrayHelper.GetRawPtr(max_elem_index);
 }
 
+bool UUdonArrayUtilsLibrary::GenericNoneSatisfy(
+    const void* TargetArray, const FArrayProperty& ArrayProperty,
+    UFunction& Predicate) {
+	return !GenericAnySatisfy(TargetArray, ArrayProperty, Predicate);
+}
+
 int32 UUdonArrayUtilsLibrary::GenericMaxElementIndex(
     const void* TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
