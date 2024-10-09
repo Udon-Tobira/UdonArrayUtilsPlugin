@@ -190,11 +190,12 @@ public:
 	 *    return true if the first argument should precede the second; otherwise,
 	 *    return false.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Utilities|Array|Sort", CustomThunk,
-	          meta = (CompactNodeTitle = "SORT", DefaultToSelf = "Object",
-	                  ArrayParm         = "TargetArray",
-	                  AutoCreateRefTerm = "ComparisonFunctionName",
-	                  KeyWords          = "sort order arrange"))
+	UFUNCTION(
+	    BlueprintCallable, Category = "Utilities|Array|Sort", CustomThunk,
+	    meta = (CompactNodeTitle = "SORT", DefaultToSelf = "Object",
+	            ArrayParm         = "TargetArray",
+	            AutoCreateRefTerm = "ComparisonFunctionName",
+	            KeyWords = "sort order arrange predicate compare comparison"))
 	static void SortAnyArray(UPARAM(ref) TArray<int32>& TargetArray,
 	                         UObject*                   Object,
 	                         const FName&               ComparisonFunctionName);
