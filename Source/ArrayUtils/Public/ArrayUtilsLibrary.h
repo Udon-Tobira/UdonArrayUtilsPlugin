@@ -218,10 +218,12 @@ public:
 	UFUNCTION(
 	    BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	    CustomThunk,
-	    meta = (CompactNodeTitle = "MAX Elem. INDEX", DefaultToSelf = "Object",
-	            ArrayParm         = "TargetArray",
-	            AutoCreateRefTerm = "ComparisonFunctionName",
-	            KeyWords = "max maximum index predicate compare comparison"))
+	    meta =
+	        (CompactNodeTitle = "MAX Elem. INDEX", DefaultToSelf = "Object",
+	         ArrayParm         = "TargetArray",
+	         AutoCreateRefTerm = "ComparisonFunctionName",
+	         KeyWords =
+	             "max maximum elem element index predicate compare comparison"))
 	static int32 MaxElementIndex(const TArray<int32>& TargetArray,
 	                             UObject*             Object,
 	                             const FName&         ComparisonFunctionName);
