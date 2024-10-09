@@ -601,7 +601,7 @@ public:
 			return;
 		}
 
-		// Perform the any_of
+		// Perform the count_if
 		*static_cast<int32*>(RESULT_PARAM) =
 		    GenericCountIf(TargetArrayAddr, *TargetArrayProperty, *Predicate);
 
