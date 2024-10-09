@@ -40,8 +40,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
 	          meta = (CompactNodeTitle = "Adj. FIND", DefaultToSelf = "Object",
-	                  ArrayParm = "TargetArray",
-	                  KeyWords  = "adjacent find predicate"))
+	                  ArrayParm         = "TargetArray",
+	                  AutoCreateRefTerm = "BinaryPredicateName",
+	                  KeyWords          = "adjacent find predicate"))
 	static int32 AdjacentFind(const TArray<int32>& TargetArray, UObject* Object,
 	                          const FName& BinaryPredicateName);
 
@@ -62,8 +63,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
 	          meta = (CompactNodeTitle = "ALL", DefaultToSelf = "Object",
-	                  ArrayParm = "TargetArray",
-	                  KeyWords  = "all of predicate condition"))
+	                  ArrayParm         = "TargetArray",
+	                  AutoCreateRefTerm = "PredicateName",
+	                  KeyWords          = "all of predicate condition"))
 	static bool AllSatisfy(const TArray<int32>& TargetArray, UObject* Object,
 	                       const FName& PredicateName);
 
@@ -84,8 +86,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
 	          meta = (CompactNodeTitle = "ANY", DefaultToSelf = "Object",
-	                  ArrayParm = "TargetArray",
-	                  KeyWords  = "any of predicate condition"))
+	                  ArrayParm         = "TargetArray",
+	                  AutoCreateRefTerm = "PredicateName",
+	                  KeyWords          = "any of predicate condition"))
 	static bool AnySatisfy(const TArray<int32>& TargetArray, UObject* Object,
 	                       const FName& PredicateName);
 
@@ -98,7 +101,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
 	          meta = (CompactNodeTitle = "COUNT", ArrayParm = "TargetArray",
-	                  ArrayTypeDependentParams = "ItemToCount"))
+	                  ArrayTypeDependentParams = "ItemToCount",
+	                  AutoCreateRefTerm        = "ItemToCount"))
 	static int32 Count(const TArray<int32>& TargetArray,
 	                   const int32&         ItemToCount);
 
@@ -119,8 +123,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
 	          meta = (CompactNodeTitle = "COUNT IF", DefaultToSelf = "Object",
-	                  ArrayParm = "TargetArray",
-	                  KeyWords  = "count if predicate condition"))
+	                  ArrayParm         = "TargetArray",
+	                  AutoCreateRefTerm = "PredicateName",
+	                  KeyWords          = "count if predicate condition"))
 	static int32 CountIf(const TArray<int32>& TargetArray, UObject* Object,
 	                     const FName& PredicateName);
 
@@ -132,7 +137,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Utilities|Array", CustomThunk,
 	          meta = (CompactNodeTitle = "FILL", ArrayParm = "TargetArray",
 	                  ArrayTypeDependentParams = "Value",
-	                  KeyWords                 = "fill set all"))
+	                  AutoCreateRefTerm = "Value", KeyWords = "fill set all"))
 	static void Fill(UPARAM(ref) TArray<int32>& TargetArray, const int32& Value);
 
 	/**
@@ -146,7 +151,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Utilities|Array", CustomThunk,
 	          meta = (ArrayParm                = "TargetArray",
 	                  ArrayTypeDependentParams = "Value",
-	                  KeyWords                 = "fill set range"))
+	                  AutoCreateRefTerm = "Value", KeyWords = "fill set range"))
 	static void FillRange(UPARAM(ref) TArray<int32>& TargetArray,
 	                      int32 StartIndex, int32 EndIndex, const int32& Value);
 
@@ -167,8 +172,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
 	          meta = (CompactNodeTitle = "FIND IF", DefaultToSelf = "Object",
-	                  ArrayParm = "TargetArray",
-	                  KeyWords  = "find if predicate condition"))
+	                  ArrayParm         = "TargetArray",
+	                  AutoCreateRefTerm = "PredicateName",
+	                  KeyWords          = "find if predicate condition"))
 	static int32 FindIf(const TArray<int32>& TargetArray, UObject* Object,
 	                    const FName& PredicateName);
 
@@ -186,7 +192,9 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Utilities|Array|Sort", CustomThunk,
 	          meta = (CompactNodeTitle = "SORT", DefaultToSelf = "Object",
-	                  ArrayParm = "TargetArray", KeyWords = "sort order arrange"))
+	                  ArrayParm         = "TargetArray",
+	                  AutoCreateRefTerm = "ComparisonFunctionName",
+	                  KeyWords          = "sort order arrange"))
 	static void SortAnyArray(UPARAM(ref) TArray<int32>& TargetArray,
 	                         UObject*                   Object,
 	                         const FName&               ComparisonFunctionName);
