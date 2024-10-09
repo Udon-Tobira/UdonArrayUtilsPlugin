@@ -610,128 +610,124 @@ public:
 	}
 
 	DECLARE_FUNCTION(execFill) {
-		{
-			///////////////////////////////////
-			// read argument 0 (TargetArray) //
-			///////////////////////////////////
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
 
-			// reset MostRecentProperty
-			Stack.MostRecentProperty = nullptr;
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
 
-			// read an array from Stack
-			Stack.StepCompiledIn<FArrayProperty>(nullptr);
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
 
-			// get pointer to read array
-			void* const TargetArrayAddr = Stack.MostRecentPropertyAddress;
+		// get pointer to read array
+		void* const TargetArrayAddr = Stack.MostRecentPropertyAddress;
 
-			// get property of read array
-			FArrayProperty* TargetArrayProperty =
-			    CastField<FArrayProperty>(Stack.MostRecentProperty);
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
 
-			// if failed to read an array
-			if (!TargetArrayProperty) {
-				// notify that failed
-				Stack.bArrayContextFailed = true;
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
 
-				// finish
-				return;
-			}
-
-			/////////////////////////////
-			// read argument 1 (Value) //
-			/////////////////////////////
-			// Since Value isn't really an int, step the stack manually
-
-			// reset MostRecentPropertyAddress
-			Stack.MostRecentPropertyAddress = nullptr;
-
-			// read a value from Stack
-			Stack.StepCompiledIn<FProperty>(nullptr);
-
-			// get pointer to read value
-			const auto* const Value = Stack.MostRecentPropertyAddress;
-
-			// end of reading arguments
-			P_FINISH;
-
-			// beginning of native processing
-			P_NATIVE_BEGIN;
-
-			// Perform fill
-			MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
-			GenericFill(TargetArrayAddr, *TargetArrayProperty, Value);
-
-			// end of native processing
-			P_NATIVE_END;
+			// finish
+			return;
 		}
+
+		/////////////////////////////
+		// read argument 1 (Value) //
+		/////////////////////////////
+		// Since Value isn't really an int, step the stack manually
+
+		// reset MostRecentPropertyAddress
+		Stack.MostRecentPropertyAddress = nullptr;
+
+		// read a value from Stack
+		Stack.StepCompiledIn<FProperty>(nullptr);
+
+		// get pointer to read value
+		const auto* const Value = Stack.MostRecentPropertyAddress;
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// Perform fill
+		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+		GenericFill(TargetArrayAddr, *TargetArrayProperty, Value);
+
+		// end of native processing
+		P_NATIVE_END;
 	}
 
 	DECLARE_FUNCTION(execFillRange) {
-		{
-			///////////////////////////////////
-			// read argument 0 (TargetArray) //
-			///////////////////////////////////
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
 
-			// reset MostRecentProperty
-			Stack.MostRecentProperty = nullptr;
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
 
-			// read an array from Stack
-			Stack.StepCompiledIn<FArrayProperty>(nullptr);
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
 
-			// get pointer to read array
-			void* const TargetArrayAddr = Stack.MostRecentPropertyAddress;
+		// get pointer to read array
+		void* const TargetArrayAddr = Stack.MostRecentPropertyAddress;
 
-			// get property of read array
-			FArrayProperty* TargetArrayProperty =
-			    CastField<FArrayProperty>(Stack.MostRecentProperty);
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
 
-			// if failed to read an array
-			if (!TargetArrayProperty) {
-				// notify that failed
-				Stack.bArrayContextFailed = true;
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
 
-				// finish
-				return;
-			}
-
-			//////////////////////////////////
-			// read argument 1 (StartIndex) //
-			//////////////////////////////////
-			P_GET_PROPERTY(FIntProperty, StartIndex);
-
-			////////////////////////////////
-			// read argument 2 (EndIndex) //
-			////////////////////////////////
-			P_GET_PROPERTY(FIntProperty, EndIndex);
-
-			/////////////////////////////
-			// read argument 3 (Value) //
-			/////////////////////////////
-			// Since Value isn't really an int, step the stack manually
-
-			// reset MostRecentPropertyAddress
-			Stack.MostRecentPropertyAddress = nullptr;
-
-			// read a value from Stack
-			Stack.StepCompiledIn<FProperty>(nullptr);
-
-			// get pointer to read value
-			const auto* const Value = Stack.MostRecentPropertyAddress;
-
-			// end of reading arguments
-			P_FINISH;
-
-			// beginning of native processing
-			P_NATIVE_BEGIN;
-
-			// Perform fill
-			MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
-			GenericFill(TargetArrayAddr, *TargetArrayProperty, StartIndex, EndIndex,
-			            Value);
-
-			// end of native processing
-			P_NATIVE_END;
+			// finish
+			return;
 		}
+
+		//////////////////////////////////
+		// read argument 1 (StartIndex) //
+		//////////////////////////////////
+		P_GET_PROPERTY(FIntProperty, StartIndex);
+
+		////////////////////////////////
+		// read argument 2 (EndIndex) //
+		////////////////////////////////
+		P_GET_PROPERTY(FIntProperty, EndIndex);
+
+		/////////////////////////////
+		// read argument 3 (Value) //
+		/////////////////////////////
+		// Since Value isn't really an int, step the stack manually
+
+		// reset MostRecentPropertyAddress
+		Stack.MostRecentPropertyAddress = nullptr;
+
+		// read a value from Stack
+		Stack.StepCompiledIn<FProperty>(nullptr);
+
+		// get pointer to read value
+		const auto* const Value = Stack.MostRecentPropertyAddress;
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// Perform fill
+		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+		GenericFill(TargetArrayAddr, *TargetArrayProperty, StartIndex, EndIndex,
+		            Value);
+
+		// end of native processing
+		P_NATIVE_END;
 	}
 
 	DECLARE_FUNCTION(execSortAnyArray) {
