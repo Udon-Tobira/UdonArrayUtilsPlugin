@@ -179,6 +179,28 @@ public:
 	                    const FName& PredicateName);
 
 	/**
+	 * Finds the maximum element in the array using a comparison function.
+	 * @param TargetArray  target array
+	 * @param Object  An object for which the comparison function is defined.
+	 * @param ComparisonFunctionName
+	 *    The Name of a comparison function that determines which of two elements
+	 *    is greater. You should return true if the first argument is less than
+	 *    the second; otherwise, return false.
+	 * @return  The maximum element in the array. If the array is empty, returns
+	 *          the default value of the element type.
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
+	          CustomThunk,
+	          meta = (CompactNodeTitle = "MAX", DefaultToSelf = "Object",
+	                  ArrayParm                = "TargetArray",
+	                  ArrayTypeDependentParams = "MaxValue",
+	                  AutoCreateRefTerm        = "ComparisonFunctionName",
+	                  KeyWords = "max maximum predicate compare comparison"))
+	static void Max(const TArray<int32>& TargetArray, UObject* Object,
+	                const FName&   ComparisonFunctionName,
+	                /*out*/ int32& MaxValue);
+
+	/**
 	 * Sort an array of any type according to the order of the specified
 	 * comparison function.
 	 * @param TargetArray  sort target array
@@ -326,6 +348,21 @@ public:
 	static int32 GenericFindIf(const void*           TargetArray,
 	                           const FArrayProperty& ArrayProperty,
 	                           UFunction&            Predicate);
+
+	/**
+	 * Finds the maximum element in the array using a comparison function.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param ComparisonFunction
+	 *    A comparison function that determines which of two elements is greater.
+	 *    You should return true if the first argument is less than the second;
+	 *    otherwise, return false.
+	 * @return  The pointer to the maximum element in the array. If the array is
+	 *          empty, returns nullptr.
+	 */
+	static const void* GenericMax(const void*           TargetArray,
+	                              const FArrayProperty& ArrayProperty,
+	                              UFunction&            ComparisonFunction);
 
 	/**
 	 * Sort an array according to the order of the specified comparison function.
@@ -839,6 +876,95 @@ public:
 		// Perform the any_of
 		*static_cast<int32*>(RESULT_PARAM) =
 		    GenericFindIf(TargetArrayAddr, *TargetArrayProperty, *Predicate);
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
+	DECLARE_FUNCTION(execMax) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// get pointer to read array
+		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		//////////////////////////////
+		// read argument 1 (Object) //
+		//////////////////////////////
+		P_GET_PROPERTY(FObjectProperty, Object);
+
+		//////////////////////////////////////////////
+		// read argument 2 (ComparisonFunctionName) //
+		//////////////////////////////////////////////
+		P_GET_PROPERTY(FNameProperty, ComparisonFunctionName);
+
+		////////////////////////////////
+		// read argument 3 (MaxValue) //
+		////////////////////////////////
+		// Since MaxValue isn't really an int, step the stack manually
+
+		// reset MostRecentPropertyAddress
+		Stack.MostRecentPropertyAddress = nullptr;
+
+		// read a value from Stack
+		Stack.StepCompiledIn<FProperty>(nullptr);
+
+		// get pointer to max value ref
+		auto* const OutMaxValue = Stack.MostRecentPropertyAddress;
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// get ComparisonFunction on Object
+		const auto& ComparisonFunction =
+		    Object->FindFunction(ComparisonFunctionName);
+
+		// if ComparisonFunction doesn't exist
+		if (!ComparisonFunction) {
+			// output error
+			UE_LOG(LogUdonArrayUtilsLibrary, Error,
+			       TEXT("ComparisonFunction '%s' not found on object: %s"),
+			       *ComparisonFunctionName.ToString(), *Object->GetName());
+
+			// finish
+			return;
+		}
+
+		// get max
+		const auto* const MaxElementPtr =
+		    GenericMax(TargetArrayAddr, *TargetArrayProperty, *ComparisonFunction);
+
+		// if max element exists (i.e. array is not empty)
+		if (MaxElementPtr) {
+			// get element property
+			const auto& ElementProperty = TargetArrayProperty->Inner;
+
+			// copy the result to the MaxValue pin
+			ElementProperty->CopySingleValueToScriptVM(OutMaxValue, MaxElementPtr);
+		}
 
 		// end of native processing
 		P_NATIVE_END;

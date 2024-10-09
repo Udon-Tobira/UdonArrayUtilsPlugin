@@ -232,6 +232,11 @@ public:
 		return ref.value();
 	}
 
+	// arrow operator
+	[[nodiscard]] pointer operator->() const noexcept {
+		return &**this;
+	}
+
 	// prefix increment operator
 	ScriptArrayHelperConstIterator& operator++() noexcept {
 		++index;
@@ -370,6 +375,11 @@ public:
 
 		// return memory_transparent_reference
 		return const_cast<ScriptArrayHelperIterator*>(this)->ref.value();
+	}
+
+	// arrow operator
+	[[nodiscard]] pointer operator->() const noexcept {
+		return &**this;
 	}
 
 	// prefix increment operator
@@ -658,6 +668,23 @@ int32 UUdonArrayUtilsLibrary::GenericFindIf(const void*           TargetArray,
 	        Predicate, ElementSize));
 
 	return found_it < cend_it ? std::distance(cbegin_it, found_it) : INDEX_NONE;
+}
+
+const void*
+    UUdonArrayUtilsLibrary::GenericMax(const void*           TargetArray,
+                                       const FArrayProperty& ArrayProperty,
+                                       UFunction& ComparisonFunction) {
+	PROCESS_ARRAY_ARGUMENTS();
+
+	// Find the first iterator that satisfies Predicate
+	auto max_it = std::max_element(
+	    cbegin_it, cend_it,
+	    CreateLambdaToCallUFunction<bool,
+	                                const const_memory_transparent_reference&,
+	                                const const_memory_transparent_reference&>(
+	        ComparisonFunction, ElementSize));
+
+	return max_it < cend_it ? max_it->target_ptr : nullptr;
 }
 
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(
