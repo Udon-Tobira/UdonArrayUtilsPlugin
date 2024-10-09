@@ -17,20 +17,26 @@ public:
 	const_memory_transparent_reference(
 	    const void* const InTargetPtr,
 	    const FProperty&  InElementProperty) noexcept
-	    : target_ptr(InTargetPtr), elem_prop(InElementProperty) {}
+	    : target_ptr(InTargetPtr), property(InElementProperty) {}
 
 public:
 	// equal operator
 	[[nodiscard]] bool
 	    operator==(const const_memory_transparent_reference& other) const {
 		// if properties are different
-		if (!elem_prop.SameType(&other.elem_prop)) {
+		if (!property.SameType(&other.property)) {
 			// return false
 			return false;
 		}
 
 		// compare elements
-		return elem_prop.Identical(target_ptr, other.target_ptr);
+		return property.Identical(target_ptr, other.target_ptr);
+	}
+
+	// equal operator with void* (without property check)
+	[[nodiscard]] bool operator==(const void* const other) const {
+		// compare values
+		return property.Identical(target_ptr, other);
 	}
 
 	// not equal operator
@@ -39,9 +45,14 @@ public:
 		return !(*this == other);
 	}
 
+	// not equal operator with void* (without property check)
+	[[nodiscard]] bool operator!=(const void* const other) const {
+		return !(*this == other);
+	}
+
 public:
 	const void* const target_ptr;
-	const FProperty&  elem_prop;
+	const FProperty&  property;
 };
 
 /**
@@ -60,10 +71,10 @@ public:
 	// copy constructor
 	memory_transparent_reference(const memory_transparent_reference& other)
 	    : const_memory_transparent_reference(
-	          new_target_ptr = ::operator new(other.elem_prop.GetSize()),
-	          other.elem_prop) {
+	          new_target_ptr = ::operator new(other.property.GetSize()),
+	          other.property) {
 		// get memory size
-		const auto& mem_size = elem_prop.GetSize();
+		const auto& mem_size = property.GetSize();
 
 		// copy value
 		std::memcpy(const_cast<void*>(target_ptr), other.target_ptr, mem_size);
@@ -77,7 +88,7 @@ public:
 	explicit memory_transparent_reference(
 	    const const_memory_transparent_reference& other)
 	    : memory_transparent_reference(const_cast<void*>(other.target_ptr),
-	                                   other.elem_prop) {}
+	                                   other.property) {}
 
 public:
 	// copy assignment operator
@@ -91,16 +102,16 @@ public:
 	memory_transparent_reference&
 	    operator=(const const_memory_transparent_reference& other) {
 		// if properties are different
-		if (!elem_prop.SameType(&other.elem_prop)) {
+		if (!property.SameType(&other.property)) {
 			// throw exception
 			throw std::invalid_argument("property of this and other is different");
 		}
 
 		// get size
-		const auto& mem_size = elem_prop.GetSize();
+		const auto& mem_size = property.GetSize();
 
 		// check size
-		check(other.elem_prop.GetSize() == mem_size);
+		check(other.property.GetSize() == mem_size);
 
 		// copy value
 		std::memcpy(const_cast<void*>(target_ptr), other.target_ptr, mem_size);
@@ -112,7 +123,7 @@ public:
 	// copy assignment from void* (without property check)
 	memory_transparent_reference& operator=(const void* const other) {
 		// copy value
-		std::memcpy(const_cast<void*>(target_ptr), other, elem_prop.GetSize());
+		std::memcpy(const_cast<void*>(target_ptr), other, property.GetSize());
 
 		// return self
 		return *this;
@@ -130,16 +141,16 @@ public:
 	friend void swap(memory_transparent_reference& a,
 	                 memory_transparent_reference& b) {
 		// if properties are different
-		if (!a.elem_prop.SameType(&b.elem_prop)) {
+		if (!a.property.SameType(&b.property)) {
 			// throw exception
 			throw std::invalid_argument("properties are different from each other");
 		}
 
 		// get size
-		const auto& mem_size = a.elem_prop.GetSize();
+		const auto& mem_size = a.property.GetSize();
 
 		// check size
-		check(b.elem_prop.GetSize() == mem_size);
+		check(b.property.GetSize() == mem_size);
 
 		FMemory::Memswap(const_cast<void*>(a.target_ptr),
 		                 const_cast<void*>(b.target_ptr), mem_size);
@@ -486,7 +497,7 @@ static constexpr auto CreateLambdaToCallUFunction(UFunction&  Predicate,
 			if constexpr (std::is_base_of_v<const_memory_transparent_reference,
 			                                std::decay_t<ArgTs>>) {
 				// check size
-				check(ElementSize == args.elem_prop.GetSize());
+				check(ElementSize == args.property.GetSize());
 
 				// get raw pointer
 				const auto* const ptr = args.target_ptr;
@@ -596,9 +607,7 @@ int32 UUdonArrayUtilsLibrary::GenericCount(const void* const     TargetArray,
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Count the number of elements matching ItemToCount
-	return std::count(
-	    cbegin_it, cend_it,
-	    const_memory_transparent_reference(ItemToCount, *ElementProperty));
+	return std::count(cbegin_it, cend_it, ItemToCount);
 }
 
 int32 UUdonArrayUtilsLibrary::GenericCountIf(
