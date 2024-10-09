@@ -109,6 +109,15 @@ public:
 		return *this;
 	}
 
+	// copy assignment from void* (without property check)
+	memory_transparent_reference& operator=(const void* const other) {
+		// copy value
+		std::memcpy(const_cast<void*>(target_ptr), other, elem_prop.GetSize());
+
+		// return self
+		return *this;
+	}
+
 	// move assignment operator
 	memory_transparent_reference&
 	    operator=(memory_transparent_reference&& other) {
