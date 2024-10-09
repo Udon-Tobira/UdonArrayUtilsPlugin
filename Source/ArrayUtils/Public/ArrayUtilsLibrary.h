@@ -102,6 +102,20 @@ public:
 	static int32 Count(const TArray<int32>& TargetArray,
 	                   const int32&         ItemToCount);
 
+	/**
+	 * Count the number of elements that satisfy the condition.
+	 * @param TargetArray  target array
+	 * @param Object   An object for which the predicate is defined.
+	 * @param PredicateName
+	 *    The name of a unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 * @return
+	 *    The total number of elements that returned true when the function with
+	 *    the name specified in PredicateName was applied to each elements.
+	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
 	          meta = (CompactNodeTitle = "COUNT IF", DefaultToSelf = "Object",
@@ -197,6 +211,20 @@ public:
 	                          const FArrayProperty& ArrayProperty,
 	                          const void*           ItemToCount);
 
+	/**
+	 * Count the number of elements that satisfy the condition.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param Predicate
+	 *    A unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 * @return
+	 *    The total number of elements that returned true when the function with
+	 *    the name specified in PredicateName was applied to each elements.
+	 */
 	static int32 GenericCountIf(const void*           TargetArray,
 	                            const FArrayProperty& ArrayProperty,
 	                            UFunction&            Predicate);
