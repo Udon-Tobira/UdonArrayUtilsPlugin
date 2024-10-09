@@ -440,7 +440,7 @@ ScriptArrayHelperConstIterator cend(FScriptArrayHelper&    ArrayHelper,
 }
 
 /**
- * Helper function to call a predicate function with one element.
+ * Helper function to call a predicate function.
  */
 template <class ReturnT, class... ArgTs>
 static constexpr auto CreateLambdaToCallUFunction(UFunction&  Predicate,
