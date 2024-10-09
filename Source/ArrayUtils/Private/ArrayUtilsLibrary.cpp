@@ -645,6 +645,21 @@ void UUdonArrayUtilsLibrary::GenericFill(void* const           TargetArray,
 	std::fill(begin_it + StartIndex, begin_it + EndIndex, Value);
 }
 
+int32 UUdonArrayUtilsLibrary::GenericFindIf(const void*           TargetArray,
+                                            const FArrayProperty& ArrayProperty,
+                                            UFunction&            Predicate) {
+	PROCESS_ARRAY_ARGUMENTS();
+
+	// Find the first iterator that satisfies Predicate
+	auto found_it = std::find_if(
+	    cbegin_it, cend_it,
+	    CreateLambdaToCallUFunction<bool,
+	                                const const_memory_transparent_reference&>(
+	        Predicate, ElementSize));
+
+	return found_it < cend_it ? std::distance(cbegin_it, found_it) : INDEX_NONE;
+}
+
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(
     void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {

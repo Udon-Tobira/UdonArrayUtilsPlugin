@@ -151,6 +151,28 @@ public:
 	                      int32 StartIndex, int32 EndIndex, const int32& Value);
 
 	/**
+	 * Searches for the first element that satisfies the specified predicate.
+	 * @param TargetArray  target array
+	 * @param Object  An object for which the predicate is defined.
+	 * @param PredicateName
+	 *    The name of a unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 * @return
+	 *    Returns the index of the first element that satisfies the predicate.
+	 *    If not found, returns INDEX_NONE (means out of index).
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
+	          CustomThunk,
+	          meta = (CompactNodeTitle = "FIND IF", DefaultToSelf = "Object",
+	                  ArrayParm = "TargetArray",
+	                  KeyWords  = "find if predicate condition"))
+	static int32 FindIf(const TArray<int32>& TargetArray, UObject* Object,
+	                    const FName& PredicateName);
+
+	/**
 	 * Sort an array of any type according to the order of the specified
 	 * comparison function.
 	 * @param TargetArray  sort target array
@@ -277,6 +299,24 @@ public:
 	static void GenericFill(void*                 TargetArray,
 	                        const FArrayProperty& ArrayProperty, int32 StartIndex,
 	                        int32 EndIndex, const void* Value);
+
+	/**
+	 * Searches for the first element that satisfies the specified predicate.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param Predicate
+	 *    A unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 * @return
+	 *    Returns the index of the first element that satisfies the predicate.
+	 *    If not found, returns INDEX_NONE (means out of index).
+	 */
+	static int32 GenericFindIf(const void*           TargetArray,
+	                           const FArrayProperty& ArrayProperty,
+	                           UFunction&            Predicate);
 
 	/**
 	 * Sort an array according to the order of the specified comparison function.
@@ -725,6 +765,71 @@ public:
 		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
 		GenericFill(TargetArrayAddr, *TargetArrayProperty, StartIndex, EndIndex,
 		            Value);
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
+	DECLARE_FUNCTION(execFindIf) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// get pointer to read array
+		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		//////////////////////////////
+		// read argument 1 (Object) //
+		//////////////////////////////
+		P_GET_PROPERTY(FObjectProperty, Object);
+
+		//////////////////////////////////////////////
+		// read argument 2 (PredicateName) //
+		//////////////////////////////////////////////
+		P_GET_PROPERTY(FNameProperty, PredicateName);
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// get Predicate on Object
+		const auto& Predicate = Object->FindFunction(PredicateName);
+
+		// if predicate doesn't exist
+		if (!Predicate) {
+			// output error
+			UE_LOG(LogUdonArrayUtilsLibrary, Error,
+			       TEXT("Predicate '%s' not found on object: %s"),
+			       *PredicateName.ToString(), *Object->GetName());
+
+			// finish
+			return;
+		}
+
+		// Perform the any_of
+		*static_cast<int32*>(RESULT_PARAM) =
+		    GenericFindIf(TargetArrayAddr, *TargetArrayProperty, *Predicate);
 
 		// end of native processing
 		P_NATIVE_END;
