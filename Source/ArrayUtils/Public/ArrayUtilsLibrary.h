@@ -535,6 +535,24 @@ public:
 	                                    UFunction&            ComparisonFunction);
 
 	/**
+	 * Checks whether none elements of the array satisfy the specified predicate.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param Predicate
+	 *    A unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 * @return
+	 *    If Predicate for any element returns true, this function returns false;
+	 *    otherwise, returns true.
+	 */
+	static bool GenericNoneSatisfy(const void*           TargetArray,
+	                               const FArrayProperty& ArrayProperty,
+	                               UFunction&            Predicate);
+
+	/**
 	 * Sort an array according to the order of the specified comparison function.
 	 * @param TargetArray  pointer to sort target array
 	 * @param ArrayProperty  property of TargetArray
