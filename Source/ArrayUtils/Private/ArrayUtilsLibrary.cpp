@@ -684,6 +684,52 @@ const void*
 	                                    : ArrayHelper.GetRawPtr(max_elem_index);
 }
 
+int32 UUdonArrayUtilsLibrary::GenericMaxElementIndex(
+    const void* TargetArray, const FArrayProperty& ArrayProperty,
+    UFunction& ComparisonFunction) {
+	PROCESS_ARRAY_ARGUMENTS();
+
+	// Find the max element
+	const auto max_it = std::max_element(
+	    cbegin_it, cend_it,
+	    CreateLambdaToCallUFunction<bool,
+	                                const const_memory_transparent_reference&,
+	                                const const_memory_transparent_reference&>(
+	        ComparisonFunction, ElementSize));
+
+	return max_it < cend_it ? std::distance(cbegin_it, max_it) : INDEX_NONE;
+}
+
+const void*
+    UUdonArrayUtilsLibrary::GenericMin(const void*           TargetArray,
+                                       const FArrayProperty& ArrayProperty,
+                                       UFunction& ComparisonFunction) {
+	PROCESS_ARRAY_ARGUMENTS();
+
+	// Find the min element's index
+	const auto min_elem_index =
+	    GenericMinElementIndex(TargetArray, ArrayProperty, ComparisonFunction);
+
+	return INDEX_NONE == min_elem_index ? nullptr
+	                                    : ArrayHelper.GetRawPtr(min_elem_index);
+}
+
+int32 UUdonArrayUtilsLibrary::GenericMinElementIndex(
+    const void* TargetArray, const FArrayProperty& ArrayProperty,
+    UFunction& ComparisonFunction) {
+	PROCESS_ARRAY_ARGUMENTS();
+
+	// Find the min element
+	const auto min_it = std::min_element(
+	    cbegin_it, cend_it,
+	    CreateLambdaToCallUFunction<bool,
+	                                const const_memory_transparent_reference&,
+	                                const const_memory_transparent_reference&>(
+	        ComparisonFunction, ElementSize));
+
+	return min_it < cend_it ? std::distance(cbegin_it, min_it) : INDEX_NONE;
+}
+
 bool UUdonArrayUtilsLibrary::GenericNoneSatisfy(
     const void* TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
@@ -730,52 +776,6 @@ void UUdonArrayUtilsLibrary::GenericRemoveIf(
 			--i;
 		}
 	}
-}
-
-int32 UUdonArrayUtilsLibrary::GenericMaxElementIndex(
-    const void* TargetArray, const FArrayProperty& ArrayProperty,
-    UFunction& ComparisonFunction) {
-	PROCESS_ARRAY_ARGUMENTS();
-
-	// Find the max element
-	const auto max_it = std::max_element(
-	    cbegin_it, cend_it,
-	    CreateLambdaToCallUFunction<bool,
-	                                const const_memory_transparent_reference&,
-	                                const const_memory_transparent_reference&>(
-	        ComparisonFunction, ElementSize));
-
-	return max_it < cend_it ? std::distance(cbegin_it, max_it) : INDEX_NONE;
-}
-
-const void*
-    UUdonArrayUtilsLibrary::GenericMin(const void*           TargetArray,
-                                       const FArrayProperty& ArrayProperty,
-                                       UFunction& ComparisonFunction) {
-	PROCESS_ARRAY_ARGUMENTS();
-
-	// Find the min element's index
-	const auto min_elem_index =
-	    GenericMinElementIndex(TargetArray, ArrayProperty, ComparisonFunction);
-
-	return INDEX_NONE == min_elem_index ? nullptr
-	                                    : ArrayHelper.GetRawPtr(min_elem_index);
-}
-
-int32 UUdonArrayUtilsLibrary::GenericMinElementIndex(
-    const void* TargetArray, const FArrayProperty& ArrayProperty,
-    UFunction& ComparisonFunction) {
-	PROCESS_ARRAY_ARGUMENTS();
-
-	// Find the min element
-	const auto min_it = std::min_element(
-	    cbegin_it, cend_it,
-	    CreateLambdaToCallUFunction<bool,
-	                                const const_memory_transparent_reference&,
-	                                const const_memory_transparent_reference&>(
-	        ComparisonFunction, ElementSize));
-
-	return min_it < cend_it ? std::distance(cbegin_it, min_it) : INDEX_NONE;
 }
 
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(
