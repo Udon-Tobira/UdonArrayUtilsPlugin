@@ -315,6 +315,25 @@ public:
 	                        int32 StartIndex, int32 EndIndex);
 
 	/**
+	 * Removes elements from the array that satisfy the specified predicate.
+	 * @param TargetArray  target array
+	 * @param Object  An object for which the predicate is defined.
+	 * @param PredicateName
+	 *    The name of a unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Utilities|Array", CustomThunk,
+	          meta = (CompactNodeTitle = "REMOVE IF", DefaultToSelf = "Object",
+	                  ArrayParm         = "TargetArray",
+	                  AutoCreateRefTerm = "PredicateName",
+	                  KeyWords = "remove delete erase if predicate condition"))
+	static void RemoveIf(UPARAM(ref) TArray<int32>& TargetArray, UObject* Object,
+	                     const FName& PredicateName);
+
+	/**
 	 * Sort an array of any type according to the order of the specified
 	 * comparison function.
 	 * @param TargetArray  sort target array
@@ -558,6 +577,21 @@ public:
 	static void GenericRemoveRange(void*                 TargetArray,
 	                               const FArrayProperty& ArrayProperty,
 	                               int32 StartIndex, int32 EndIndex);
+
+	/**
+	 * Removes elements from the array that satisfy the specified predicate.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param Predicate
+	 *    A unary predicate function that defines whether the element
+	 *    satisfies the condition. This must be a function that has one argument
+	 *    of the same type as the array elements and returns a bool. If the
+	 *    element is considered to meet your intended condition, return true;
+	 *    otherwise, return false.
+	 */
+	static void GenericRemoveIf(void*                 TargetArray,
+	                            const FArrayProperty& ArrayProperty,
+	                            UFunction&            Predicate);
 
 	/**
 	 * Sort an array according to the order of the specified comparison function.
@@ -1498,6 +1532,153 @@ public:
 		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
 		GenericRemoveRange(TargetArrayAddr, *TargetArrayProperty, StartIndex,
 		                   EndIndex);
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
+	DECLARE_FUNCTION(execRemoveIf) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// get pointer to read array
+		void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		//////////////////////////////
+		// read argument 1 (Object) //
+		//////////////////////////////
+		P_GET_PROPERTY(FObjectProperty, Object);
+
+		//////////////////////////////////////////////
+		// read argument 2 (PredicateName) //
+		//////////////////////////////////////////////
+		P_GET_PROPERTY(FNameProperty, PredicateName);
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// get Predicate on Object
+		const auto& Predicate = Object->FindFunction(PredicateName);
+
+		// if predicate doesn't exist
+		if (!Predicate) {
+			// output error
+			UE_LOG(LogUdonArrayUtilsLibrary, Error,
+			       TEXT("Predicate '%s' not found on object: %s"),
+			       *PredicateName.ToString(), *Object->GetName());
+
+			// finish
+			return;
+		}
+
+		// Perform remove_if
+		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
+		GenericRemoveIf(TargetArrayAddr, *TargetArrayProperty, *Predicate);
+
+		// end of native processing
+		P_NATIVE_END;
+	}
+
+	DECLARE_FUNCTION(execRandomSample) {
+		///////////////////////////////////
+		// read argument 0 (TargetArray) //
+		///////////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// get pointer to read array
+		const void* TargetArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of read array
+		FArrayProperty* TargetArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read an array
+		if (!TargetArrayProperty) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		////////////////////////////////////
+		// read argument 1 (NumOfSamples) //
+		////////////////////////////////////
+		P_GET_PROPERTY(FIntProperty, NumOfSamples);
+
+		///////////////////////////////
+		// read argument 2 (Samples) //
+		///////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// get pointer to the array
+		const void* SamplesArrayAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of the array
+		FArrayProperty* SamplesArrayProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read the array or the array is not same type as TargetArray
+		if (!SamplesArrayProperty ||
+		    !SamplesArrayProperty->SameType(TargetArrayProperty)) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
+		// end of reading arguments
+		P_FINISH;
+
+		// beginning of native processing
+		P_NATIVE_BEGIN;
+
+		// get max
+		const auto* const MaxElementPtr = GenericRandomSample(
+		    TargetArrayAddr, *TargetArrayProperty, NumOfSamples);
+
+		// if max element exists (i.e. array is not empty)
+		if (MaxElementPtr) {
+			// get element property
+			const auto& ElementProperty = TargetArrayProperty->Inner;
+
+			// copy the result to the MaxValue pin
+			ElementProperty->CopySingleValueToScriptVM(OutMaxValue, MaxElementPtr);
+		}
 
 		// end of native processing
 		P_NATIVE_END;

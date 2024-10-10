@@ -708,6 +708,30 @@ void UUdonArrayUtilsLibrary::GenericRemoveRange(
 	ArrayHelper.RemoveValues(StartIndex, NumToRemove);
 }
 
+void UUdonArrayUtilsLibrary::GenericRemoveIf(
+    void* TargetArray, const FArrayProperty& ArrayProperty,
+    UFunction& Predicate) {
+	PROCESS_ARRAY_ARGUMENTS();
+
+	// create lambda to call Predicate
+	const auto lambda_predicate = CreateLambdaToCallUFunction<
+	    bool, const const_memory_transparent_reference&>(Predicate, ElementSize);
+
+	// remove elements that satisfy Predicate
+	for (auto i = decltype(NumArray){0}; i < ArrayHelper.Num(); ++i) {
+		// get element as const_memory_transparent_reference
+		const auto& elem_trans_ref = const_memory_transparent_reference(
+		    ArrayHelper.GetRawPtr(i), *ElementProperty);
+
+		// if the element satisfies Predicate
+		if (lambda_predicate(elem_trans_ref)) {
+			// remove the element
+			ArrayHelper.RemoveValues(i, 1);
+			--i;
+		}
+	}
+}
+
 int32 UUdonArrayUtilsLibrary::GenericMaxElementIndex(
     const void* TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
