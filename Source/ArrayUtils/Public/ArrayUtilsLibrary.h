@@ -186,8 +186,9 @@ public:
 	 *    The Name of a comparison function that determines which of two elements
 	 *    is greater. You should return true if the first argument is less than
 	 *    the second; otherwise, return false.
-	 * @return  The maximum element in the array. If the array is empty, returns
-	 *          the default value of the element type.
+	 * @param[out] MaxValue
+	 *    The maximum element in the array. If the array is empty, this lvalue is
+	 *    not modified.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
@@ -236,8 +237,9 @@ public:
 	 *    The Name of a comparison function that determines which of two elements
 	 *    is greater. You should return true if the first argument is less than
 	 *    the second; otherwise, return false.
-	 * @return  The minimum element in the array. If the array is empty, returns
-	 *          the default value of the element type.
+	 * @param[out] MinValue
+	 *    The minimum element in the array. If the array is empty, this lvalue is
+	 *    not modified.
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utilities|Array",
 	          CustomThunk,
