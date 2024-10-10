@@ -842,24 +842,67 @@ void UUdonArrayUtilsLibrary::GenericRemoveIf(
 	}
 }
 
-std::shared_ptr<FScriptArray> UUdonArrayUtilsLibrary::GenericRandomSample(
-    const void* TargetArray, const FArrayProperty& ArrayProperty,
-    int32 NumOfSamples) {
+std::pair<std::shared_ptr<FScriptArray>, std::shared_ptr<FScriptArray>>
+    UUdonArrayUtilsLibrary::GenericRandomSample(
+        const void* TargetArray, const FArrayProperty& ArrayProperty,
+        int32 NumOfSamples) {
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// create a new array to store samples
 	auto Samples = std::make_shared<FScriptArray>();
 
-	// create a back inserter
-	FScriptArrayBackInsertIterator BackInserter(*Samples, *ElementProperty);
+	// create a new array to store others
+	auto Others = std::make_shared<FScriptArray>();
+
+	// if array is empty
+	if (0 == NumArray) {
+		// return the pair of empty arrays
+		return {Samples, Others};
+	}
+
+	// create a back inserter for Samples
+	FScriptArrayBackInsertIterator SamplesIt(*Samples, *ElementProperty);
+
+	// create a back inserter for Others
+	FScriptArrayBackInsertIterator OthersIt(*Others, *ElementProperty);
 
 	// create a pseudo random source engine
 	std::mt19937 mersenne_twister{std::random_device{}()};
 
-	// sample elements
-	std::sample(cbegin_it, cend_it, BackInserter, NumOfSamples, mersenne_twister);
+	using unsigned_num_t = std::make_unsigned_t<std::decay_t<decltype(NumArray)>>;
 
-	return Samples;
+	// sample elements
+	unsigned_num_t rest_samples = NumOfSamples;
+	for (auto it = cbegin_it; it < cend_it; ++it) {
+		// get rest length of the array
+		const auto& rest_length = std::distance(it, cend_it);
+
+		// create a uniform distribution for rest_length
+		std::uniform_int_distribution<unsigned_num_t> dist(0, rest_length - 1);
+
+		// if the element is selected as a sample
+		if (dist(mersenne_twister) < rest_samples) {
+			// decrease the number of rest samples
+			--rest_samples;
+
+			// copy the element to Samples
+			*SamplesIt = *it;
+
+			// advance SamplesIt
+			++SamplesIt;
+		}
+		// otherwise, the element is not selected as a sample
+		else {
+			// copy the element to Others
+			*OthersIt = *it;
+
+			// advance OthersIt
+			++OthersIt;
+		}
+	}
+
+	// return the pair of Samples and Others
+	return {Samples, Others};
 }
 
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(

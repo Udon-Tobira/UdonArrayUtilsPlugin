@@ -340,14 +340,15 @@ public:
 	 * @param TargetArray  target array
 	 * @param NumOfSamples  number of samples to randomly select
 	 * @param[out] Samples  output array to store the randomly selected samples
+	 * @param[out] Others output array to store the remaining elements
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Utilities|Array", CustomThunk,
-	          meta = (CompactNodeTitle         = "SAMPLE",
-	                  ArrayParm                = "TargetArray,Samples",
-	                  ArrayTypeDependentParams = "TargetArray,Samples",
+	          meta = (AdvancedDisplay          = "Others",
+	                  ArrayParm                = "TargetArray,Samples,Others",
+	                  ArrayTypeDependentParams = "TargetArray,Samples,Others",
 	                  NumOfSamples = 1, KeyWords = "random sample items"))
 	static void RandomSample(const TArray<int32>& TargetArray, int32 NumOfSamples,
-	                         TArray<int32>& Samples);
+	                         TArray<int32>& Samples, TArray<int32>& Others);
 
 	/**
 	 * Sort an array of any type according to the order of the specified
@@ -614,8 +615,11 @@ public:
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
 	 * @param NumOfSamples  number of samples to randomly select
+	 * @return
+	 *    A pair of two arrays. The first array contains the randomly
+	 *    selected samples, and the second array contains the remaining elements.
 	 */
-	static std::shared_ptr<FScriptArray>
+	static std::pair<std::shared_ptr<FScriptArray>, std::shared_ptr<FScriptArray>>
 	    GenericRandomSample(const void*           TargetArray,
 	                        const FArrayProperty& ArrayProperty,
 	                        int32                 NumOfSamples);
@@ -1687,6 +1691,32 @@ public:
 			return;
 		}
 
+		///////////////////////////////
+		// read argument 3 (Others) //
+		///////////////////////////////
+
+		// reset MostRecentProperty
+		Stack.MostRecentProperty = nullptr;
+
+		// read an array from Stack
+		Stack.StepCompiledIn<FArrayProperty>(nullptr);
+
+		// get pointer to the array
+		void* OthersAddr = Stack.MostRecentPropertyAddress;
+
+		// get property of the array
+		FArrayProperty* OthersProperty =
+		    CastField<FArrayProperty>(Stack.MostRecentProperty);
+
+		// if failed to read the array or the array is not same type as TargetArray
+		if (!OthersProperty || !OthersProperty->SameType(TargetArrayProperty)) {
+			// notify that failed
+			Stack.bArrayContextFailed = true;
+
+			// finish
+			return;
+		}
+
 		// end of reading arguments
 		P_FINISH;
 
@@ -1694,12 +1724,16 @@ public:
 		P_NATIVE_BEGIN;
 
 		// get samples
-		const auto& SamplesSharedPtr = GenericRandomSample(
+		const auto& [SamplesSharedPtr, OthersSharedPtr] = GenericRandomSample(
 		    TargetArrayAddr, *TargetArrayProperty, NumOfSamples);
 
 		// copy the result to the Samples pin
 		SamplesProperty->CopyCompleteValueToScriptVM(SamplesAddr,
 		                                             SamplesSharedPtr.get());
+
+		// copy the result to the Samples pin
+		SamplesProperty->CopyCompleteValueToScriptVM(OthersAddr,
+		                                             OthersSharedPtr.get());
 
 		// end of native processing
 		P_NATIVE_END;
