@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iterator>
 #include <optional>
+#include <random>
 #include <stdexcept>
 
 namespace udon {
@@ -18,6 +19,12 @@ public:
 	    const void* const InTargetPtr,
 	    const FProperty&  InElementProperty) noexcept
 	    : target_ptr(InTargetPtr), property(InElementProperty) {}
+
+public:
+	// conversion operator to inner target_ptr
+	[[nodiscard]] operator const void* const() const noexcept {
+		return target_ptr;
+	}
 
 public:
 	// equal operator
@@ -89,6 +96,12 @@ public:
 	    const const_memory_transparent_reference& other)
 	    : memory_transparent_reference(const_cast<void*>(other.target_ptr),
 	                                   other.property) {}
+
+public:
+	// conversion operator to inner target_ptr
+	[[nodiscard]] operator void* const() const noexcept {
+		return const_cast<void*>(target_ptr);
+	}
 
 public:
 	// copy assignment operator
@@ -536,6 +549,57 @@ static constexpr auto CreateLambdaToCallUFunction(UFunction&  Predicate,
 		}
 	};
 }
+
+class FScriptArrayBackInsertIterator {
+public:
+	using iterator_category = std::output_iterator_tag;
+	using value_type        = void;
+	using pointer           = void;
+	using reference         = void;
+
+	using container_type = FScriptArray;
+
+	using difference_type = void;
+
+public:
+	FScriptArrayBackInsertIterator(FScriptArray&    InScriptArray,
+	                               const FProperty& InElementProperty) noexcept
+	    : ScriptArray(&InScriptArray), ElementProperty(&InElementProperty) {}
+
+	FScriptArrayBackInsertIterator& operator=(const void* Value) {
+		// create helper for ScriptArray
+		auto ScriptArrayHelper = FScriptArrayHelper::CreateHelperFormInnerProperty(
+		    ElementProperty, ScriptArray);
+
+		// add an element
+		ScriptArrayHelper.AddUninitializedValue();
+
+		// get a pointer to the added element
+		auto* const LastElementPtr =
+		    ScriptArrayHelper.GetRawPtr(ScriptArrayHelper.Num() - 1);
+
+		// copy Value to the added element
+		std::memcpy(LastElementPtr, Value, ElementProperty->ElementSize);
+
+		return *this;
+	}
+
+	[[nodiscard]] FScriptArrayBackInsertIterator& operator*() noexcept {
+		return *this;
+	}
+
+	FScriptArrayBackInsertIterator& operator++() noexcept {
+		return *this;
+	}
+
+	FScriptArrayBackInsertIterator operator++(int) noexcept {
+		return *this;
+	}
+
+protected:
+	FScriptArray*    ScriptArray;
+	const FProperty* ElementProperty;
+};
 } // namespace udon
 
 /**
@@ -776,6 +840,26 @@ void UUdonArrayUtilsLibrary::GenericRemoveIf(
 			--i;
 		}
 	}
+}
+
+std::shared_ptr<FScriptArray> UUdonArrayUtilsLibrary::GenericRandomSample(
+    const void* TargetArray, const FArrayProperty& ArrayProperty,
+    int32 NumOfSamples) {
+	PROCESS_ARRAY_ARGUMENTS();
+
+	// create a new array to store samples
+	auto Samples = std::make_shared<FScriptArray>();
+
+	// create a back inserter
+	FScriptArrayBackInsertIterator BackInserter(*Samples, *ElementProperty);
+
+	// create a pseudo random source engine
+	std::mt19937 mersenne_twister{std::random_device{}()};
+
+	// sample elements
+	std::sample(cbegin_it, cend_it, BackInserter, NumOfSamples, mersenne_twister);
+
+	return Samples;
 }
 
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(

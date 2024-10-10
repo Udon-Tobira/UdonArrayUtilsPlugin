@@ -336,6 +336,20 @@ public:
 	                     const FName& PredicateName);
 
 	/**
+	 * Randomly select the specified number of samples from the target array.
+	 * @param TargetArray  target array
+	 * @param NumOfSamples  number of samples to randomly select
+	 * @param[out] Samples  output array to store the randomly selected samples
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Utilities|Array", CustomThunk,
+	          meta = (CompactNodeTitle         = "SAMPLE",
+	                  ArrayParm                = "TargetArray,Samples",
+	                  ArrayTypeDependentParams = "TargetArray,Samples",
+	                  NumOfSamples = 1, KeyWords = "random sample items"))
+	static void RandomSample(const TArray<int32>& TargetArray, int32 NumOfSamples,
+	                         TArray<int32>& Samples);
+
+	/**
 	 * Sort an array of any type according to the order of the specified
 	 * comparison function.
 	 * @param TargetArray  sort target array
@@ -594,6 +608,17 @@ public:
 	static void GenericRemoveIf(void*                 TargetArray,
 	                            const FArrayProperty& ArrayProperty,
 	                            UFunction&            Predicate);
+
+	/**
+	 * Randomly select the specified number of samples from the target array.
+	 * @param TargetArray  target array
+	 * @param ArrayProperty  property of TargetArray
+	 * @param NumOfSamples  number of samples to randomly select
+	 */
+	static std::shared_ptr<FScriptArray>
+	    GenericRandomSample(const void*           TargetArray,
+	                        const FArrayProperty& ArrayProperty,
+	                        int32                 NumOfSamples);
 
 	/**
 	 * Sort an array according to the order of the specified comparison function.
@@ -1647,15 +1672,14 @@ public:
 		Stack.StepCompiledIn<FArrayProperty>(nullptr);
 
 		// get pointer to the array
-		const void* SamplesArrayAddr = Stack.MostRecentPropertyAddress;
+		void* SamplesAddr = Stack.MostRecentPropertyAddress;
 
 		// get property of the array
-		FArrayProperty* SamplesArrayProperty =
+		FArrayProperty* SamplesProperty =
 		    CastField<FArrayProperty>(Stack.MostRecentProperty);
 
 		// if failed to read the array or the array is not same type as TargetArray
-		if (!SamplesArrayProperty ||
-		    !SamplesArrayProperty->SameType(TargetArrayProperty)) {
+		if (!SamplesProperty || !SamplesProperty->SameType(TargetArrayProperty)) {
 			// notify that failed
 			Stack.bArrayContextFailed = true;
 
@@ -1669,18 +1693,13 @@ public:
 		// beginning of native processing
 		P_NATIVE_BEGIN;
 
-		// get max
-		const auto* const MaxElementPtr = GenericRandomSample(
+		// get samples
+		const auto& SamplesSharedPtr = GenericRandomSample(
 		    TargetArrayAddr, *TargetArrayProperty, NumOfSamples);
 
-		// if max element exists (i.e. array is not empty)
-		if (MaxElementPtr) {
-			// get element property
-			const auto& ElementProperty = TargetArrayProperty->Inner;
-
-			// copy the result to the MaxValue pin
-			ElementProperty->CopySingleValueToScriptVM(OutMaxValue, MaxElementPtr);
-		}
+		// copy the result to the Samples pin
+		SamplesProperty->CopyCompleteValueToScriptVM(SamplesAddr,
+		                                             SamplesSharedPtr.get());
 
 		// end of native processing
 		P_NATIVE_END;
