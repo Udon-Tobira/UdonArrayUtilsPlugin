@@ -2,4 +2,4 @@
 
 #include "LogUdonArrayUtilsLibrary.h"
 
-DEFINE_LOG_CATEGORY(LogUdonUdonArrayUtilsLibrary)
+DEFINE_LOG_CATEGORY(LogUdonArrayUtilsLibrary)

@@ -490,6 +490,13 @@ ScriptArrayHelperConstIterator cend(FScriptArrayHelper&    ArrayHelper,
 }
 
 /**
+ * Template to create constant false. Use this if I want to static_assert in
+ * constexpr if statement.
+ */
+template <typename T>
+constexpr bool false_v = false;
+
+/**
  * Helper function to call a predicate function.
  */
 template <class ReturnT, class... ArgTs>
@@ -533,7 +540,7 @@ static constexpr auto CreateLambdaToCallUFunction(UFunction&  Predicate,
 				// add ElementSize to working_offset
 				working_offset += ElementSize;
 			} else {
-				static_assert(false, "not implemented");
+				static_assert(udon::false_v<ArgTs>, "not implemented");
 			}
 		}());
 
@@ -629,7 +636,7 @@ protected:
 	auto begin_it = begin(ArrayHelper, ElementProperty);                         \
 	auto end_it   = end(ArrayHelper, ElementProperty);
 
-int32 UUdonUdonArrayUtilsLibrary::GenericAdjacentFind(
+int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& BinaryPredicate) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -645,7 +652,7 @@ int32 UUdonUdonArrayUtilsLibrary::GenericAdjacentFind(
 	return found_it < cend_it ? std::distance(cbegin_it, found_it) : INDEX_NONE;
 }
 
-bool UUdonUdonArrayUtilsLibrary::GenericAllSatisfy(
+bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -660,7 +667,7 @@ bool UUdonUdonArrayUtilsLibrary::GenericAllSatisfy(
 	return bIsAllSatisfy;
 }
 
-bool UUdonUdonArrayUtilsLibrary::GenericAnySatisfy(
+bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -675,7 +682,7 @@ bool UUdonUdonArrayUtilsLibrary::GenericAnySatisfy(
 	return bIsAnySatisfy;
 }
 
-int32 UUdonUdonArrayUtilsLibrary::GenericCount(const void* const     TargetArray,
+int32 UUdonArrayUtilsLibrary::GenericCount(const void* const     TargetArray,
                                            const FArrayProperty& ArrayProperty,
                                            const void* const     ItemToCount) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -684,7 +691,7 @@ int32 UUdonUdonArrayUtilsLibrary::GenericCount(const void* const     TargetArray
 	return std::count(cbegin_it, cend_it, ItemToCount);
 }
 
-int32 UUdonUdonArrayUtilsLibrary::GenericCountIf(
+int32 UUdonArrayUtilsLibrary::GenericCountIf(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -699,7 +706,7 @@ int32 UUdonUdonArrayUtilsLibrary::GenericCountIf(
 	return bCount;
 }
 
-void UUdonUdonArrayUtilsLibrary::GenericFill(void*                 TargetArray,
+void UUdonArrayUtilsLibrary::GenericFill(void*                 TargetArray,
                                          const FArrayProperty& ArrayProperty,
                                          const void*           Value) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -708,7 +715,7 @@ void UUdonUdonArrayUtilsLibrary::GenericFill(void*                 TargetArray,
 	std::fill(begin_it, end_it, Value);
 }
 
-void UUdonUdonArrayUtilsLibrary::GenericFill(void* const           TargetArray,
+void UUdonArrayUtilsLibrary::GenericFill(void* const           TargetArray,
                                          const FArrayProperty& ArrayProperty,
                                          const int32           StartIndex,
                                          const int32           EndIndex,
@@ -719,7 +726,7 @@ void UUdonUdonArrayUtilsLibrary::GenericFill(void* const           TargetArray,
 	std::fill(begin_it + StartIndex, begin_it + EndIndex, Value);
 }
 
-int32 UUdonUdonArrayUtilsLibrary::GenericFindIf(const void*           TargetArray,
+int32 UUdonArrayUtilsLibrary::GenericFindIf(const void*           TargetArray,
                                             const FArrayProperty& ArrayProperty,
                                             UFunction&            Predicate) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -735,7 +742,7 @@ int32 UUdonUdonArrayUtilsLibrary::GenericFindIf(const void*           TargetArra
 }
 
 const void*
-    UUdonUdonArrayUtilsLibrary::GenericMax(const void*           TargetArray,
+    UUdonArrayUtilsLibrary::GenericMax(const void*           TargetArray,
                                        const FArrayProperty& ArrayProperty,
                                        UFunction& ComparisonFunction) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -748,7 +755,7 @@ const void*
 	                                    : ArrayHelper.GetRawPtr(max_elem_index);
 }
 
-int32 UUdonUdonArrayUtilsLibrary::GenericMaxElementIndex(
+int32 UUdonArrayUtilsLibrary::GenericMaxElementIndex(
     const void* TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -765,7 +772,7 @@ int32 UUdonUdonArrayUtilsLibrary::GenericMaxElementIndex(
 }
 
 const void*
-    UUdonUdonArrayUtilsLibrary::GenericMin(const void*           TargetArray,
+    UUdonArrayUtilsLibrary::GenericMin(const void*           TargetArray,
                                        const FArrayProperty& ArrayProperty,
                                        UFunction& ComparisonFunction) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -778,7 +785,7 @@ const void*
 	                                    : ArrayHelper.GetRawPtr(min_elem_index);
 }
 
-int32 UUdonUdonArrayUtilsLibrary::GenericMinElementIndex(
+int32 UUdonArrayUtilsLibrary::GenericMinElementIndex(
     const void* TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -794,13 +801,13 @@ int32 UUdonUdonArrayUtilsLibrary::GenericMinElementIndex(
 	return min_it < cend_it ? std::distance(cbegin_it, min_it) : INDEX_NONE;
 }
 
-bool UUdonUdonArrayUtilsLibrary::GenericNoneSatisfy(
+bool UUdonArrayUtilsLibrary::GenericNoneSatisfy(
     const void* TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
 	return !GenericAnySatisfy(TargetArray, ArrayProperty, Predicate);
 }
 
-void UUdonUdonArrayUtilsLibrary::GenericRemoveRange(
+void UUdonArrayUtilsLibrary::GenericRemoveRange(
     void* TargetArray, const FArrayProperty& ArrayProperty, int32 StartIndex,
     int32 EndIndex) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -818,7 +825,7 @@ void UUdonUdonArrayUtilsLibrary::GenericRemoveRange(
 	ArrayHelper.RemoveValues(StartIndex, NumToRemove);
 }
 
-void UUdonUdonArrayUtilsLibrary::GenericRemoveIf(
+void UUdonArrayUtilsLibrary::GenericRemoveIf(
     void* TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& Predicate) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -843,7 +850,7 @@ void UUdonUdonArrayUtilsLibrary::GenericRemoveIf(
 }
 
 std::pair<std::shared_ptr<FScriptArray>, std::shared_ptr<FScriptArray>>
-    UUdonUdonArrayUtilsLibrary::GenericRandomSample(
+    UUdonArrayUtilsLibrary::GenericRandomSample(
         const void* TargetArray, const FArrayProperty& ArrayProperty,
         int32 NumOfSamples) {
 	PROCESS_ARRAY_ARGUMENTS();
@@ -905,7 +912,7 @@ std::pair<std::shared_ptr<FScriptArray>, std::shared_ptr<FScriptArray>>
 	return {Samples, Others};
 }
 
-void UUdonUdonArrayUtilsLibrary::GenericSortAnyArray(
+void UUdonArrayUtilsLibrary::GenericSortAnyArray(
     void* const TargetArray, const FArrayProperty& ArrayProperty,
     UFunction& ComparisonFunction) {
 	PROCESS_ARRAY_ARGUMENTS();
