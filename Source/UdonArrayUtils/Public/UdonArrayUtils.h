@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FArrayUtilsModule: public IModuleInterface {
+class FUdonArrayUtilsModule: public IModuleInterface {
 public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;

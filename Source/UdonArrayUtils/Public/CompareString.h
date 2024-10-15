@@ -11,7 +11,7 @@
  *
  */
 UCLASS()
-class ARRAYUTILS_API UUdonCompareString: public UBlueprintFunctionLibrary {
+class UDONARRAYUTILS_API UUdonCompareString: public UBlueprintFunctionLibrary {
 	GENERATED_BODY()
 
 public:

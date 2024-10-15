@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class ArrayUtils : ModuleRules
+public class UdonArrayUtils : ModuleRules
 {
-    public ArrayUtils(ReadOnlyTargetRules Target) : base(Target)
+    public UdonArrayUtils(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 

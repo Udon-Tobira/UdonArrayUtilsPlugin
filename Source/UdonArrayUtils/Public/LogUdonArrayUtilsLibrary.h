@@ -4,4 +4,4 @@
 
 #include "CoreMinimal.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogUdonArrayUtilsLibrary, Display, All)
+DECLARE_LOG_CATEGORY_EXTERN(LogUdonUdonArrayUtilsLibrary, Display, All)
