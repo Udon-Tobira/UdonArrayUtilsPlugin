@@ -500,7 +500,8 @@ constexpr bool false_v = false;
  * Helper function to call a predicate function.
  */
 template <class ReturnT, class... ArgTs>
-static constexpr auto CreateLambdaToCallUFunction(UFunction&  Predicate,
+static constexpr auto CreateLambdaToCallUFunction(UObject&    Context,
+                                                  UFunction&  Predicate,
                                                   const int32 ElementSize) {
 	// Total memory size of Predicate arguments and return value
 	const auto& PredicateParamSize =
@@ -516,7 +517,7 @@ static constexpr auto CreateLambdaToCallUFunction(UFunction&  Predicate,
 	    [](void* const ptr) { ::operator delete(ptr); });
 
 	// retun lambda
-	return [&Predicate, ElementSize,
+	return [&Context, &Predicate, ElementSize,
 	        PredParamWorkingMemory =
 	            std::move(PredicateParamWorkingMemory)](ArgTs... args) {
 		// working offset on PredicateParamWorkingMemory
@@ -545,8 +546,7 @@ static constexpr auto CreateLambdaToCallUFunction(UFunction&  Predicate,
 		}());
 
 		// call Predicate
-		Predicate.GetOuter()->ProcessEvent(&Predicate,
-		                                   PredParamWorkingMemory.get());
+		Context.ProcessEvent(&Predicate, PredParamWorkingMemory.get());
 
 		// if return value is present
 		if constexpr (!std::is_same_v<void, ReturnT>) {
@@ -638,7 +638,7 @@ protected:
 
 int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
-    UFunction& BinaryPredicate) {
+    UObject& Object, UFunction& BinaryPredicate) {
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Find the first iterator that satisfy BinaryPredicate
@@ -647,14 +647,14 @@ int32 UUdonArrayUtilsLibrary::GenericAdjacentFind(
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&,
 	                                const const_memory_transparent_reference&>(
-	        BinaryPredicate, ElementSize));
+	        Object, BinaryPredicate, ElementSize));
 
 	return found_it < cend_it ? std::distance(cbegin_it, found_it) : INDEX_NONE;
 }
 
 bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
-    UFunction& Predicate) {
+    UObject& Object, UFunction& Predicate) {
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Check if all elements of TargetArray satisfy Predicate
@@ -662,14 +662,14 @@ bool UUdonArrayUtilsLibrary::GenericAllSatisfy(
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
-	        Predicate, ElementSize));
+	        Object, Predicate, ElementSize));
 
 	return bIsAllSatisfy;
 }
 
 bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
-    UFunction& Predicate) {
+    UObject& Object, UFunction& Predicate) {
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Check if any element of TargetArray satisfies Predicate
@@ -677,7 +677,7 @@ bool UUdonArrayUtilsLibrary::GenericAnySatisfy(
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
-	        Predicate, ElementSize));
+	        Object, Predicate, ElementSize));
 
 	return bIsAnySatisfy;
 }
@@ -693,7 +693,7 @@ int32 UUdonArrayUtilsLibrary::GenericCount(const void* const     TargetArray,
 
 int32 UUdonArrayUtilsLibrary::GenericCountIf(
     const void* const TargetArray, const FArrayProperty& ArrayProperty,
-    UFunction& Predicate) {
+    UObject& Object, UFunction& Predicate) {
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Check if any element of TargetArray satisfies Predicate
@@ -701,7 +701,7 @@ int32 UUdonArrayUtilsLibrary::GenericCountIf(
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
-	        Predicate, ElementSize));
+	        Object, Predicate, ElementSize));
 
 	return bCount;
 }
@@ -728,6 +728,7 @@ void UUdonArrayUtilsLibrary::GenericFill(void* const           TargetArray,
 
 int32 UUdonArrayUtilsLibrary::GenericFindIf(const void*           TargetArray,
                                             const FArrayProperty& ArrayProperty,
+                                            UObject&              Object,
                                             UFunction&            Predicate) {
 	PROCESS_ARRAY_ARGUMENTS();
 
@@ -736,20 +737,19 @@ int32 UUdonArrayUtilsLibrary::GenericFindIf(const void*           TargetArray,
 	    cbegin_it, cend_it,
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&>(
-	        Predicate, ElementSize));
+	        Object, Predicate, ElementSize));
 
 	return found_it < cend_it ? std::distance(cbegin_it, found_it) : INDEX_NONE;
 }
 
-const void*
-    UUdonArrayUtilsLibrary::GenericMax(const void*           TargetArray,
-                                       const FArrayProperty& ArrayProperty,
-                                       UFunction& ComparisonFunction) {
+const void* UUdonArrayUtilsLibrary::GenericMax(
+    const void* TargetArray, const FArrayProperty& ArrayProperty,
+    UObject& Object, UFunction& ComparisonFunction) {
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Find the max element's index
-	const auto max_elem_index =
-	    GenericMaxElementIndex(TargetArray, ArrayProperty, ComparisonFunction);
+	const auto max_elem_index = GenericMaxElementIndex(
+	    TargetArray, ArrayProperty, Object, ComparisonFunction);
 
 	return INDEX_NONE == max_elem_index ? nullptr
 	                                    : ArrayHelper.GetRawPtr(max_elem_index);
@@ -757,7 +757,7 @@ const void*
 
 int32 UUdonArrayUtilsLibrary::GenericMaxElementIndex(
     const void* TargetArray, const FArrayProperty& ArrayProperty,
-    UFunction& ComparisonFunction) {
+    UObject& Object, UFunction& ComparisonFunction) {
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Find the max element
@@ -766,20 +766,19 @@ int32 UUdonArrayUtilsLibrary::GenericMaxElementIndex(
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&,
 	                                const const_memory_transparent_reference&>(
-	        ComparisonFunction, ElementSize));
+	        Object, ComparisonFunction, ElementSize));
 
 	return max_it < cend_it ? std::distance(cbegin_it, max_it) : INDEX_NONE;
 }
 
-const void*
-    UUdonArrayUtilsLibrary::GenericMin(const void*           TargetArray,
-                                       const FArrayProperty& ArrayProperty,
-                                       UFunction& ComparisonFunction) {
+const void* UUdonArrayUtilsLibrary::GenericMin(
+    const void* TargetArray, const FArrayProperty& ArrayProperty,
+    UObject& Object, UFunction& ComparisonFunction) {
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Find the min element's index
-	const auto min_elem_index =
-	    GenericMinElementIndex(TargetArray, ArrayProperty, ComparisonFunction);
+	const auto min_elem_index = GenericMinElementIndex(
+	    TargetArray, ArrayProperty, Object, ComparisonFunction);
 
 	return INDEX_NONE == min_elem_index ? nullptr
 	                                    : ArrayHelper.GetRawPtr(min_elem_index);
@@ -787,7 +786,7 @@ const void*
 
 int32 UUdonArrayUtilsLibrary::GenericMinElementIndex(
     const void* TargetArray, const FArrayProperty& ArrayProperty,
-    UFunction& ComparisonFunction) {
+    UObject& Object, UFunction& ComparisonFunction) {
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// Find the min element
@@ -796,15 +795,15 @@ int32 UUdonArrayUtilsLibrary::GenericMinElementIndex(
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&,
 	                                const const_memory_transparent_reference&>(
-	        ComparisonFunction, ElementSize));
+	        Object, ComparisonFunction, ElementSize));
 
 	return min_it < cend_it ? std::distance(cbegin_it, min_it) : INDEX_NONE;
 }
 
 bool UUdonArrayUtilsLibrary::GenericNoneSatisfy(
     const void* TargetArray, const FArrayProperty& ArrayProperty,
-    UFunction& Predicate) {
-	return !GenericAnySatisfy(TargetArray, ArrayProperty, Predicate);
+    UObject& Object, UFunction& Predicate) {
+	return !GenericAnySatisfy(TargetArray, ArrayProperty, Object, Predicate);
 }
 
 void UUdonArrayUtilsLibrary::GenericRemoveRange(
@@ -826,13 +825,15 @@ void UUdonArrayUtilsLibrary::GenericRemoveRange(
 }
 
 void UUdonArrayUtilsLibrary::GenericRemoveIf(
-    void* TargetArray, const FArrayProperty& ArrayProperty,
+    void* TargetArray, const FArrayProperty& ArrayProperty, UObject& Object,
     UFunction& Predicate) {
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// create lambda to call Predicate
-	const auto lambda_predicate = CreateLambdaToCallUFunction<
-	    bool, const const_memory_transparent_reference&>(Predicate, ElementSize);
+	const auto lambda_predicate =
+	    CreateLambdaToCallUFunction<bool,
+	                                const const_memory_transparent_reference&>(
+	        Object, Predicate, ElementSize);
 
 	// remove elements that satisfy Predicate
 	for (auto i = decltype(NumArray){0}; i < ArrayHelper.Num(); ++i) {
@@ -914,7 +915,7 @@ std::pair<std::shared_ptr<FScriptArray>, std::shared_ptr<FScriptArray>>
 
 void UUdonArrayUtilsLibrary::GenericSortAnyArray(
     void* const TargetArray, const FArrayProperty& ArrayProperty,
-    UFunction& ComparisonFunction) {
+    UObject& Object, UFunction& ComparisonFunction) {
 	PROCESS_ARRAY_ARGUMENTS();
 
 	// sort the elements of TargetArray
@@ -923,7 +924,7 @@ void UUdonArrayUtilsLibrary::GenericSortAnyArray(
 	    CreateLambdaToCallUFunction<bool,
 	                                const const_memory_transparent_reference&,
 	                                const const_memory_transparent_reference&>(
-	        ComparisonFunction, ElementSize));
+	        Object, ComparisonFunction, ElementSize));
 }
 
 #undef PROCESS_ARRAY_ARGUMENTS

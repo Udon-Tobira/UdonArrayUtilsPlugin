@@ -381,6 +381,8 @@ public:
 	 * condition. Returns the index of the first element of such a pair.
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the binary predicate function is
+	 *                defined.
 	 * @param BinaryPredicate
 	 *    A binary predicate function that defines whether the pair of
 	 *    adjacent elements satisfies the condition. This must be a function that
@@ -394,12 +396,14 @@ public:
 	 */
 	static int32 GenericAdjacentFind(const void*           TargetArray,
 	                                 const FArrayProperty& ArrayProperty,
-	                                 UFunction&            BinaryPredicate);
+	                                 UObject& Object, UFunction& BinaryPredicate);
 
 	/**
 	 * Checks whether all elements of the array satisfy the specified predicate.
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the unary predicate function is
+	 *                defined.
 	 * @param Predicate
 	 *    A unary predicate function that defines whether the element
 	 *    satisfies the condition. This must be a function that has one argument
@@ -412,12 +416,14 @@ public:
 	 */
 	static bool GenericAllSatisfy(const void*           TargetArray,
 	                              const FArrayProperty& ArrayProperty,
-	                              UFunction&            Predicate);
+	                              UObject& Object, UFunction& Predicate);
 
 	/**
 	 * Checks whether any element of the array satisfies the specified predicate.
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the unary predicate function is
+	 *                defined.
 	 * @param Predicate
 	 *    A unary predicate function that defines whether the element
 	 *    satisfies the condition. This must be a function that has one argument
@@ -430,7 +436,7 @@ public:
 	 */
 	static bool GenericAnySatisfy(const void*           TargetArray,
 	                              const FArrayProperty& ArrayProperty,
-	                              UFunction&            Predicate);
+	                              UObject& Object, UFunction& Predicate);
 
 	/**
 	 * Count the number of elements that match the specified element.
@@ -447,6 +453,8 @@ public:
 	 * Count the number of elements that satisfy the condition.
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the unary predicate function is
+	 *                defined.
 	 * @param Predicate
 	 *    A unary predicate function that defines whether the element
 	 *    satisfies the condition. This must be a function that has one argument
@@ -459,7 +467,7 @@ public:
 	 */
 	static int32 GenericCountIf(const void*           TargetArray,
 	                            const FArrayProperty& ArrayProperty,
-	                            UFunction&            Predicate);
+	                            UObject& Object, UFunction& Predicate);
 
 	/**
 	 * Overwrites the entire array with Value.
@@ -488,6 +496,8 @@ public:
 	 * Searches for the first element that satisfies the specified predicate.
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the unary predicate function is
+	 *                defined.
 	 * @param Predicate
 	 *    A unary predicate function that defines whether the element
 	 *    satisfies the condition. This must be a function that has one argument
@@ -500,12 +510,13 @@ public:
 	 */
 	static int32 GenericFindIf(const void*           TargetArray,
 	                           const FArrayProperty& ArrayProperty,
-	                           UFunction&            Predicate);
+	                           UObject& Object, UFunction& Predicate);
 
 	/**
 	 * Finds the maximum element in the array using a comparison function.
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the comparison function is defined.
 	 * @param ComparisonFunction
 	 *    A comparison function that determines which of two elements is greater.
 	 *    You should return true if the first argument is less than the second;
@@ -515,13 +526,15 @@ public:
 	 */
 	static const void* GenericMax(const void*           TargetArray,
 	                              const FArrayProperty& ArrayProperty,
-	                              UFunction&            ComparisonFunction);
+	                              UObject& Object, UFunction& ComparisonFunction);
 
 	/**
 	 * Searches for the index of the maximum element in the array using a custom
 	 * comparison function.
 	 * @param TargetArray  The target array to search.
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the binary comparison function is
+	 *                defined.
 	 * @param ComparisonFunction
 	 *    A binary comparison function that defines the order of elements. This
 	 *    function must have two arguments of the same type as the array elements
@@ -533,12 +546,15 @@ public:
 	 */
 	static int32 GenericMaxElementIndex(const void*           TargetArray,
 	                                    const FArrayProperty& ArrayProperty,
+	                                    UObject&              Object,
 	                                    UFunction&            ComparisonFunction);
 
 	/**
 	 * Finds the minimum element in the array using a comparison function.
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the binary comparison function is
+	 *                defined.
 	 * @param ComparisonFunction
 	 *    A comparison function that determines which of two elements is greater.
 	 *    You should return true if the first argument is less than the second;
@@ -548,13 +564,15 @@ public:
 	 */
 	static const void* GenericMin(const void*           TargetArray,
 	                              const FArrayProperty& ArrayProperty,
-	                              UFunction&            ComparisonFunction);
+	                              UObject& Object, UFunction& ComparisonFunction);
 
 	/**
 	 * Searches for the index of the minimum element in the array using a custom
 	 * comparison function.
 	 * @param TargetArray  The target array to search.
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the binary comparison function is
+	 *                defined.
 	 * @param ComparisonFunction
 	 *    A binary comparison function that defines the order of elements. This
 	 *    function must have two arguments of the same type as the array elements
@@ -566,12 +584,15 @@ public:
 	 */
 	static int32 GenericMinElementIndex(const void*           TargetArray,
 	                                    const FArrayProperty& ArrayProperty,
+	                                    UObject&              Object,
 	                                    UFunction&            ComparisonFunction);
 
 	/**
 	 * Checks whether none elements of the array satisfy the specified predicate.
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the unary predicate function is
+	 *                defined.
 	 * @param Predicate
 	 *    A unary predicate function that defines whether the element
 	 *    satisfies the condition. This must be a function that has one argument
@@ -584,7 +605,7 @@ public:
 	 */
 	static bool GenericNoneSatisfy(const void*           TargetArray,
 	                               const FArrayProperty& ArrayProperty,
-	                               UFunction&            Predicate);
+	                               UObject& Object, UFunction& Predicate);
 
 	/**
 	 * Removes the elements in the range [StartIndex, EndIndex) from the target
@@ -602,6 +623,8 @@ public:
 	 * Removes elements from the array that satisfy the specified predicate.
 	 * @param TargetArray  target array
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the unary predicate function is
+	 *                defined.
 	 * @param Predicate
 	 *    A unary predicate function that defines whether the element
 	 *    satisfies the condition. This must be a function that has one argument
@@ -611,7 +634,7 @@ public:
 	 */
 	static void GenericRemoveIf(void*                 TargetArray,
 	                            const FArrayProperty& ArrayProperty,
-	                            UFunction&            Predicate);
+	                            UObject& Object, UFunction& Predicate);
 
 	/**
 	 * Randomly select the specified number of samples from the target array.
@@ -631,6 +654,8 @@ public:
 	 * Sort an array according to the order of the specified comparison function.
 	 * @param TargetArray  pointer to sort target array
 	 * @param ArrayProperty  property of TargetArray
+	 * @param Object  An object for which the binary comparison function is
+	 *                defined.
 	 * @param ComparisonFunction
 	 *    A comparison function used to specify if one element should
 	 *    precede another. This must be a function that has two arguments of the
@@ -640,6 +665,7 @@ public:
 	 */
 	static void GenericSortAnyArray(void*                 TargetArray,
 	                                const FArrayProperty& ArrayProperty,
+	                                UObject&              Object,
 	                                UFunction&            ComparisonFunction);
 
 public:
@@ -702,7 +728,7 @@ public:
 
 		// Perform the adjacent find
 		*static_cast<int32*>(RESULT_PARAM) = GenericAdjacentFind(
-		    TargetArrayAddr, *TargetArrayProperty, *BinaryPredicate);
+		    TargetArrayAddr, *TargetArrayProperty, *Object, *BinaryPredicate);
 
 		// end of native processing
 		P_NATIVE_END;
@@ -766,8 +792,8 @@ public:
 		}
 
 		// Perform the all_of
-		*static_cast<bool*>(RESULT_PARAM) =
-		    GenericAllSatisfy(TargetArrayAddr, *TargetArrayProperty, *Predicate);
+		*static_cast<bool*>(RESULT_PARAM) = GenericAllSatisfy(
+		    TargetArrayAddr, *TargetArrayProperty, *Object, *Predicate);
 
 		// end of native processing
 		P_NATIVE_END;
@@ -831,8 +857,8 @@ public:
 		}
 
 		// Perform the any_of
-		*static_cast<bool*>(RESULT_PARAM) =
-		    GenericAnySatisfy(TargetArrayAddr, *TargetArrayProperty, *Predicate);
+		*static_cast<bool*>(RESULT_PARAM) = GenericAnySatisfy(
+		    TargetArrayAddr, *TargetArrayProperty, *Object, *Predicate);
 
 		// end of native processing
 		P_NATIVE_END;
@@ -951,8 +977,8 @@ public:
 		}
 
 		// Perform the count_if
-		*static_cast<int32*>(RESULT_PARAM) =
-		    GenericCountIf(TargetArrayAddr, *TargetArrayProperty, *Predicate);
+		*static_cast<int32*>(RESULT_PARAM) = GenericCountIf(
+		    TargetArrayAddr, *TargetArrayProperty, *Object, *Predicate);
 
 		// end of native processing
 		P_NATIVE_END;
@@ -1137,8 +1163,8 @@ public:
 		}
 
 		// Perform the any_of
-		*static_cast<int32*>(RESULT_PARAM) =
-		    GenericFindIf(TargetArrayAddr, *TargetArrayProperty, *Predicate);
+		*static_cast<int32*>(RESULT_PARAM) = GenericFindIf(
+		    TargetArrayAddr, *TargetArrayProperty, *Object, *Predicate);
 
 		// end of native processing
 		P_NATIVE_END;
@@ -1217,8 +1243,8 @@ public:
 		}
 
 		// get max
-		const auto* const MaxElementPtr =
-		    GenericMax(TargetArrayAddr, *TargetArrayProperty, *ComparisonFunction);
+		const auto* const MaxElementPtr = GenericMax(
+		    TargetArrayAddr, *TargetArrayProperty, *Object, *ComparisonFunction);
 
 		// if max element exists (i.e. array is not empty)
 		if (MaxElementPtr) {
@@ -1293,7 +1319,7 @@ public:
 
 		// get max
 		*static_cast<int32*>(RESULT_PARAM) = GenericMaxElementIndex(
-		    TargetArrayAddr, *TargetArrayProperty, *ComparisonFunction);
+		    TargetArrayAddr, *TargetArrayProperty, *Object, *ComparisonFunction);
 
 		// end of native processing
 		P_NATIVE_END;
@@ -1372,8 +1398,8 @@ public:
 		}
 
 		// get min
-		const auto* const MinElementPtr =
-		    GenericMin(TargetArrayAddr, *TargetArrayProperty, *ComparisonFunction);
+		const auto* const MinElementPtr = GenericMin(
+		    TargetArrayAddr, *TargetArrayProperty, *Object, *ComparisonFunction);
 
 		// if min element exists (i.e. array is not empty)
 		if (MinElementPtr) {
@@ -1448,7 +1474,7 @@ public:
 
 		// get min
 		*static_cast<int32*>(RESULT_PARAM) = GenericMinElementIndex(
-		    TargetArrayAddr, *TargetArrayProperty, *ComparisonFunction);
+		    TargetArrayAddr, *TargetArrayProperty, *Object, *ComparisonFunction);
 
 		// end of native processing
 		P_NATIVE_END;
@@ -1512,8 +1538,8 @@ public:
 		}
 
 		// Perform the none_of
-		*static_cast<bool*>(RESULT_PARAM) =
-		    GenericNoneSatisfy(TargetArrayAddr, *TargetArrayProperty, *Predicate);
+		*static_cast<bool*>(RESULT_PARAM) = GenericNoneSatisfy(
+		    TargetArrayAddr, *TargetArrayProperty, *Object, *Predicate);
 
 		// end of native processing
 		P_NATIVE_END;
@@ -1630,7 +1656,7 @@ public:
 
 		// Perform remove_if
 		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
-		GenericRemoveIf(TargetArrayAddr, *TargetArrayProperty, *Predicate);
+		GenericRemoveIf(TargetArrayAddr, *TargetArrayProperty, *Object, *Predicate);
 
 		// end of native processing
 		P_NATIVE_END;
@@ -1802,7 +1828,7 @@ public:
 
 		// Perform the sort
 		MARK_PROPERTY_DIRTY(Stack.Object, TargetArrayProperty);
-		GenericSortAnyArray(TargetArrayAddr, *TargetArrayProperty,
+		GenericSortAnyArray(TargetArrayAddr, *TargetArrayProperty, *Object,
 		                    *ComparisonFunction);
 
 		// end of native processing
