@@ -2,6 +2,8 @@
 
 #include "UdonArrayUtilsLibrary.h"
 
+#include "Misc/EngineVersionComparison.h"
+
 #include <algorithm>
 #include <iterator>
 #include <optional>
@@ -557,6 +559,16 @@ static constexpr auto CreateLambdaToCallUFunction(UObject&    Context,
 	};
 }
 
+inline int32 GetFPropertyElementSize(const FProperty& property) {
+	return
+#if UE_VERSION_OLDER_THAN(5, 5, 0)
+	    property.ElementSize
+#else
+	    property.GetElementSize()
+#endif
+	    ;
+}
+
 class FScriptArrayBackInsertIterator {
 public:
 	using iterator_category = std::output_iterator_tag;
@@ -585,8 +597,11 @@ public:
 		auto* const LastElementPtr =
 		    ScriptArrayHelper.GetRawPtr(ScriptArrayHelper.Num() - 1);
 
+		// get element size
+		const auto& ElementSize = GetFPropertyElementSize(*ElementProperty);
+
 		// copy Value to the added element
-		std::memcpy(LastElementPtr, Value, ElementProperty->ElementSize);
+		std::memcpy(LastElementPtr, Value, ElementSize);
 
 		return *this;
 	}
@@ -626,7 +641,7 @@ protected:
 	const auto* const ElementProperty = ArrayProperty.Inner;                     \
                                                                                \
 	/* get the size of one element */                                            \
-	const auto& ElementSize = ElementProperty->ElementSize;                      \
+	const auto& ElementSize = GetFPropertyElementSize(*ElementProperty);         \
                                                                                \
 	/* create the begin and end const iterators of the TargetArray */            \
 	auto cbegin_it = cbegin(ArrayHelper, ElementProperty);                       \
